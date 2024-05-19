@@ -842,9 +842,9 @@ def check_for_updates():
     loading_screen = LoadingScreen()
     loading_screen.show()
 
-    repo_url = "https://github.com/jhnorby/Jake-Squared.git"
+    repo_url = "https://github.com/booka66/ChannelExtract.git"
     home_dir = os.path.expanduser("~")
-    local_path = os.path.join(home_dir, "Jake-Squared")
+    local_path = os.path.join(home_dir, "ChannelExtract")
 
     try:
         # Fetch the latest commit hash from the remote repository using git command
@@ -892,15 +892,15 @@ def check_for_updates():
                 subprocess.call(
                     [
                         "pyinstaller",
-                        "--name=ChannelSelectionTool",
+                        "--name=ChannelExtract",
                         "--onefile",
                         "--windowed",
-                        "py_gui.py",
+                        "ChannelExtract.py",
                     ]
                 )
 
                 # Modify the spec file to include necessary data files
-                spec_file = "ChannelSelectionTool.spec"
+                spec_file = "ChannelExtract.spec"
                 with open(spec_file, "r") as file:
                     spec_content = file.read()
 
@@ -925,10 +925,10 @@ def check_for_updates():
                 loading_screen.update_progress(100)
 
                 # Replace the old executable with the new one
-                os.replace("dist/ChannelSelectionTool", "ChannelSelectionTool")
+                os.replace("dist/ChannelExtract", "ChannelExtract")
 
                 # Restart the app
-                subprocess.Popen(["ChannelSelectionTool"])
+                subprocess.Popen(["ChannelExtract"])
                 sys.exit()
     except subprocess.CalledProcessError as e:
         error_message = f"Error occurred during update check: {str(e)}"
