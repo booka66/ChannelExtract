@@ -31,6 +31,7 @@ from matplotlib.path import Path
 import matplotlib.image as mpimg
 import subprocess
 import shutil
+import PyInstaller.__main__
 
 
 class ScatterPlot(QWidget):
@@ -851,7 +852,7 @@ def check_for_updates():
             os.system("pyinstaller --version")
         except Exception:
             print("PyInstaller is not installed. Installing...")
-            os.system("pip install -r requirements.txt")
+            os.system("pip install pyinstaller")
             try:
                 os.system("pyinstaller --version")
             except Exception:
@@ -897,9 +898,8 @@ def check_for_updates():
                 loading_screen.update_label("Building executable...")
                 loading_screen.update_progress(50)
 
-                # Create the spec file
-                os.system(
-                    f"pyinstaller --onefile --windowed {local_path}/ChannelExtract.py"
+                PyInstaller.__main__.run(
+                    [f"{local_path}/ChannelExtract.py", "--onefile", "--windowed"]
                 )
 
                 loading_screen.update_label("Restarting app...")
