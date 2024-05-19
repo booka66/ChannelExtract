@@ -904,12 +904,18 @@ def check_for_updates():
                 # Clone the latest version of the repository
                 subprocess.call(["git", "clone", repo_url, local_path])
 
-                loading_screen.update_label("Building executable...")
-                loading_screen.update_progress(50)
+                loading_screen.update_label("Installing dependencies...")
+                loading_screen.update_progress(40)
 
-                print("Building executable...")
+                print("Installing dependencies...")
                 os.chdir(local_path)
                 os.system("source venv/bin/activate")
+                os.system("pip install -r requirements.txt")
+
+                loading_screen.update_label("Building executable...")
+                loading_screen.update_progress(60)
+
+                print("Building executable...")
                 os.system(
                     f"pyinstaller --onefile --windowed {local_path}/ChannelExtract.py"
                 )
