@@ -848,13 +848,12 @@ def check_for_updates():
             raise Exception("Git is not installed")
 
         try:
-            subprocess.check_output(["pyinstaller", "--version"])
+            os.system("pyinstaller --version")
         except Exception:
             print("PyInstaller is not installed. Installing...")
-            os.system("source venv/bin/activate")
             os.system("pip install -r requirements.txt")
             try:
-                subprocess.check_output(["pyinstaller", "--version"])
+                os.system("pyinstaller --version")
             except Exception:
                 raise Exception("PyInstaller installation failed")
         # Fetch the latest commit hash from the remote repository using git command
@@ -899,38 +898,9 @@ def check_for_updates():
                 loading_screen.update_progress(50)
 
                 # Create the spec file
-                subprocess.call(
-                    [
-                        "pyinstaller",
-                        "--name=ChannelExtract",
-                        "--onefile",
-                        "--windowed",
-                        "ChannelExtract.py",
-                    ]
+                os.system(
+                    f"pyinstaller --onefile --windowed {local_path}/ChannelExtract.py"
                 )
-
-                # Modify the spec file to include necessary data files
-                spec_file = "ChannelExtract.spec"
-                with open(spec_file, "r") as file:
-                    spec_content = file.read()
-
-                # Add the necessary data files to the spec file
-                data_files = [
-                    # Add your data files here, e.g., ('path/to/file.extension', 'path/to/file.extension', 'DATA')
-                    "requirements.txt",
-                ]
-                for data_file in data_files:
-                    spec_content = spec_content.replace(
-                        "a = Analysis(", f"a.datas += [{data_file}]\na = Analysis("
-                    )
-
-                with open(spec_file, "w") as file:
-                    file.write(spec_content)
-
-                loading_screen.update_progress(75)
-
-                # Build the executable using the modified spec file
-                subprocess.call(["pyinstaller", spec_file])
 
                 loading_screen.update_label("Restarting app...")
                 loading_screen.update_progress(100)
