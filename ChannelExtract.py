@@ -127,7 +127,7 @@ class ChannelExtract(QMainWindow):
         self.centralWidget.setLayout(self.mainLayout)
 
         # Create header
-        self.headerLabel = QLabel("THIS IS A TEST FOR AUTO UPDATE")
+        self.headerLabel = QLabel("Channel Selection Toolbox")
         self.headerLabel.setAlignment(Qt.AlignCenter)
         self.headerLabel.setStyleSheet(
             "background-color: #ADD8E6; color: #000080; font-size: 20px; padding: 10px;"
