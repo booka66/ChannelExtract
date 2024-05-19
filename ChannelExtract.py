@@ -132,7 +132,7 @@ class ChannelExtract(QMainWindow):
         )
         self.headerLabel.setAlignment(Qt.AlignCenter)
         self.headerLabel.setStyleSheet(
-            "background-color: #B22222; color: #F8F8FF; font-size: 20px; padding: 10px;"
+            "background-color: #ADD8E6; color: #000080; font-size: 20px; padding: 10px;"
         )
         self.mainLayout.addWidget(self.headerLabel)
 
@@ -140,7 +140,7 @@ class ChannelExtract(QMainWindow):
         inputLayout = QHBoxLayout()
         uploadButton = QPushButton("Upload .brw Files")
         uploadButton.setStyleSheet(
-            "background-color: #B22222; color: #F8F8FF; font-size: 16px; padding: 5px;"
+            "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
         )
         uploadButton.clicked.connect(self.uploadFiles)
         inputLayout.addWidget(uploadButton)
@@ -173,7 +173,7 @@ class ChannelExtract(QMainWindow):
         self.fileNameLabel = QLabel("Analysis File: ")
         self.fileNameLabel.setAlignment(Qt.AlignCenter)
         self.fileNameLabel.setStyleSheet(
-            "background-color: #A52A2A; color: white; font-size: 16px; padding: 5px;"
+            "background-color: #87CEEB; color: #000080; font-size: 16px; padding: 5px;"
         )
         self.mainLayout.addWidget(self.fileNameLabel)
 
@@ -193,6 +193,7 @@ class ChannelExtract(QMainWindow):
         inputGridLayout.addWidget(self.inputGridLabel)
         inputGridLayout.addWidget(self.inputGridWidget)
         channelLayout.addLayout(inputGridLayout, stretch=3)  # Increased stretch factor
+
         # Create channel selection layout
         channelLayout = QHBoxLayout()
 
@@ -242,7 +243,7 @@ class ChannelExtract(QMainWindow):
 
         exportButton = QPushButton("Export Channels")
         exportButton.setStyleSheet(
-            "background-color: #B22222; color: #F8F8FF; font-size: 16px; padding: 5px;"
+            "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
         )
         exportButton.clicked.connect(self.exportChannels)
 
