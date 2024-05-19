@@ -848,15 +848,6 @@ def check_for_updates():
         except subprocess.CalledProcessError:
             raise Exception("Git is not installed")
 
-        try:
-            os.system("pyinstaller --version")
-        except Exception:
-            print("PyInstaller is not installed. Installing...")
-            os.system("pip install pyinstaller")
-            try:
-                os.system("pyinstaller --version")
-            except Exception:
-                raise Exception("PyInstaller installation failed")
         # Fetch the latest commit hash from the remote repository using git command
         remote_commit = (
             subprocess.check_output(["git", "ls-remote", repo_url, "HEAD"])
