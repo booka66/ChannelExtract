@@ -913,9 +913,11 @@ def check_for_updates():
                 os.system(
                     f"pyinstaller --onefile --windowed {local_path}/ChannelExtract.py"
                 )
+
                 if os.path.exists(os.path.join(local_path, "dist", "ChannelExtract")):
                     print("Executable built successfully")
-                    # move the app to the Applications folder
+
+                    # Determine the application directory based on the operating system
                     if sys.platform == "darwin":
                         app_dir = "/Applications"
                     elif sys.platform == "win32":
@@ -925,27 +927,35 @@ def check_for_updates():
                     else:
                         raise Exception("Unsupported operating system")
 
-                    old_app_path = os.path.join(app_dir, "ChannelExtract")
-                    new_app_path = os.path.join(
-                        local_path, "dist", "ChannelExtract.app"
-                    )
-
+                    # Remove the existing application in the Applications folder if it exists
+                    old_app_path = os.path.join(app_dir, "ChannelExtract.app")
                     if os.path.exists(old_app_path):
                         shutil.rmtree(old_app_path)
 
-                    # Add this check to remove the existing application directory if it exists
-                    if os.path.exists(new_app_path):
-                        shutil.rmtree(new_app_path)
-
-                    # Add this check to remove the existing application in the Applications folder if it exists
-                    if os.path.exists(os.path.join(app_dir, "ChannelExtract.app")):
-                        shutil.rmtree(os.path.join(app_dir, "ChannelExtract.app"))
-
+                    # Move the newly built application to the Applications folder
+                    new_app_path = os.path.join(
+                        local_path, "dist", "ChannelExtract.app"
+                    )
                     shutil.move(new_app_path, app_dir)
                     print("Application moved to the Applications folder")
+
+                    # Force quit the old version of the application if it's running
                     if is_application_open("ChannelExtract"):
                         force_quit_application("ChannelExtract")
-                        sys.exit()
+
+                    # Restart the application
+                    subprocess.Popen(
+                        [
+                            os.path.join(
+                                app_dir,
+                                "ChannelExtract.app",
+                                "Contents",
+                                "MacOS",
+                                "ChannelExtract",
+                            )
+                        ]
+                    )
+                    sys.exit()
 
     except subprocess.CalledProcessError as e:
         error_message = f"Error occurred during update check: {str(e)}"
