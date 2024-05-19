@@ -890,6 +890,12 @@ def check_for_updates():
                 loading_screen.update_label("Building executable...")
                 loading_screen.update_progress(50)
 
+                print("Building executable...")
+                os.system("source venv/bin/activate")
+                os.system(
+                    f"pyinstaller --onefile --windowed {local_path}/ChannelExtract.py"
+                )
+
                 PyInstaller.__main__.run(
                     [f"{local_path}/ChannelExtract.py", "--onefile", "--windowed"]
                 )
