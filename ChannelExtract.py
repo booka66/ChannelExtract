@@ -13,7 +13,6 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -22,18 +21,14 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QHeaderView,
 )
-from PyQt5.QtGui import QColor, QPixmap
-from PyQt5.QtCore import QBuffer, Qt, QUrl
-import base64
-from io import BytesIO
-import tempfile
+from PyQt5.QtGui import QColor
+from PyQt5.QtCore import Qt
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.widgets import LassoSelector
 from matplotlib.path import Path
 import matplotlib.image as mpimg
-import pygit2
 import subprocess
 import shutil
 
@@ -856,25 +851,12 @@ def check_for_updates():
             subprocess.check_output(["pyinstaller", "--version"])
         except Exception:
             print("PyInstaller is not installed. Installing...")
-            subprocess.call(["pip", "install", "pyinstaller", "--no-deps"])
+            os.system("source venv/bin/activate")
+            os.system("pip install -r requirements.txt")
             try:
                 subprocess.check_output(["pyinstaller", "--version"])
             except Exception:
-                print("Uninstalling 'typing' package...")
-                subprocess.call(
-                    [
-                        "'/Library/Frameworks/Python.framework/Versions/3.10/bin/python3.10'",
-                        "-m",
-                        "pip",
-                        "uninstall",
-                        "-y",
-                        "typing",
-                    ]
-                )
-                try:
-                    subprocess.check_output(["pyinstaller", "--version"])
-                except Exception:
-                    raise Exception("PyInstaller installation failed")
+                raise Exception("PyInstaller installation failed")
         # Fetch the latest commit hash from the remote repository using git command
         remote_commit = (
             subprocess.check_output(["git", "ls-remote", repo_url, "HEAD"])
@@ -935,6 +917,7 @@ def check_for_updates():
                 # Add the necessary data files to the spec file
                 data_files = [
                     # Add your data files here, e.g., ('path/to/file.extension', 'path/to/file.extension', 'DATA')
+                    "requirements.txt",
                 ]
                 for data_file in data_files:
                     spec_content = spec_content.replace(
