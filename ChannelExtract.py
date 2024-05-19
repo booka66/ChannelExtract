@@ -876,7 +876,6 @@ def check_for_updates():
                 QMessageBox.Yes | QMessageBox.No,
             )
             if reply == QMessageBox.Yes:
-                sys.exit()
                 loading_screen.update_label("Updating...")
                 loading_screen.update_progress(25)
 
@@ -900,7 +899,8 @@ def check_for_updates():
                 # Replace the old executable with the new one
                 os.replace("dist/ChannelExtract", "ChannelExtract")
 
-                # Restart the app
+                QApplication.quit()
+
                 subprocess.Popen(["ChannelExtract"])
     except subprocess.CalledProcessError as e:
         error_message = f"Error occurred during update check: {str(e)}"
