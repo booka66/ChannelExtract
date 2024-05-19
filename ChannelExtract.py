@@ -835,6 +835,23 @@ class LoadingScreen(QWidget):
         self.label.setText(text)
 
 
+def is_application_open(app_name):
+    try:
+        # Check if the application is running using pgrep
+        result = subprocess.check_output(["pgrep", "-f", app_name])
+        return bool(result.strip())
+    except subprocess.CalledProcessError:
+        return False
+
+
+def force_quit_application(app_name):
+    try:
+        # Force quit the application using pkill
+        subprocess.call(["pkill", "-f", app_name])
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while trying to force quit {app_name}: {str(e)}")
+
+
 def check_for_updates():
     loading_screen = LoadingScreen()
     loading_screen.show()
@@ -891,33 +908,36 @@ def check_for_updates():
                 loading_screen.update_progress(50)
 
                 print("Building executable...")
+                os.chdir(local_path)
                 os.system("source venv/bin/activate")
                 os.system(
                     f"pyinstaller --onefile --windowed {local_path}/ChannelExtract.py"
                 )
+                if os.path.exists(os.path.join(local_path, "dist", "ChannelExtract")):
+                    print("Executable built successfully")
+                    # move the app to the Applications folder
+                    if sys.platform == "darwin":
+                        app_dir = "/Applications"
+                    elif sys.platform == "win32":
+                        app_dir = os.path.join(
+                            os.environ["PROGRAMFILES"], "ChannelExtract"
+                        )
+                    else:
+                        raise Exception("Unsupported operating system")
 
-                PyInstaller.__main__.run(
-                    [f"{local_path}/ChannelExtract.py", "--onefile", "--windowed"]
-                )
+                    old_app_path = os.path.join(app_dir, "ChannelExtract")
+                    new_app_path = os.path.join(
+                        local_path, "dist", "ChannelExtract.app"
+                    )
 
-                loading_screen.update_label("Restarting app...")
-                loading_screen.update_progress(100)
+                    if os.path.exists(old_app_path):
+                        shutil.rmtree(old_app_path)
 
-                # Replace the old .app with the new one
-                if sys.platform == "darwin":  # macOS
-                    app_dir = "/Applications"
-                elif sys.platform == "win32":
-                    app_dir = os.path.join(os.environ["PROGRAMFILES"], "ChannelExtract")
-                else:
-                    raise Exception("Unsupported operating system")
-
-                old_app_path = os.path.join(app_dir, "ChannelExtract.app")
-                new_app_path = os.path.join(local_path, "dist", "ChannelExtract.app")
-
-                if os.path.exists(old_app_path):
-                    shutil.rmtree(old_app_path)
-
-                shutil.move(new_app_path, app_dir)
+                    shutil.move(new_app_path, app_dir)
+                    print("Application moved to the Applications folder")
+                    if is_application_open("ChannelExtract"):
+                        force_quit_application("ChannelExtract")
+                        sys.exit()
 
     except subprocess.CalledProcessError as e:
         error_message = f"Error occurred during update check: {str(e)}"
