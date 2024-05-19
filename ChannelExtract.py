@@ -850,6 +850,30 @@ def force_quit_application(app_name):
         print(f"Error occurred while trying to force quit {app_name}: {str(e)}")
 
 
+def run_commands_in_terminal(commands):
+    try:
+        if sys.platform == "darwin":  # macOS
+            script = "#!/bin/bash\n"
+            script += "\n".join(commands)
+            subprocess.Popen(
+                [
+                    "osascript",
+                    "-e",
+                    f'tell application "Terminal" to do script "{script}"',
+                ]
+            )
+        elif sys.platform == "win32":  # Windows
+            script = " & ".join(commands)
+            subprocess.Popen(["start", "cmd", "/k", script], shell=True)
+        else:  # Linux or other Unix-like systems
+            script = "\n".join(commands)
+            subprocess.Popen(["gnome-terminal", "--", "bash", "-c", script])
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while running commands: {str(e)}")
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+
+
 def check_for_updates():
     loading_screen = LoadingScreen()
     loading_screen.show()
@@ -906,17 +930,25 @@ def check_for_updates():
                 loading_screen.update_progress(40)
 
                 print("Installing dependencies...")
-                os.chdir(local_path)
-                os.system("source venv/bin/activate")
-                os.system("pip install -r requirements.txt")
-
-                loading_screen.update_label("Building executable...")
-                loading_screen.update_progress(60)
-
-                print("Building executable...")
-                os.system(
-                    f"pyinstaller --onefile --windowed {local_path}/ChannelExtract.py"
-                )
+                commands = [
+                    "cd",
+                    "cd ChannelExtract",
+                    "source venv/bin/activate",
+                    "pip install -r requirements.txt",
+                    "pyinstaller --onefile --windowed ChannelExtract.py",
+                ]
+                run_commands_in_terminal(commands)
+                # os.chdir(local_path)
+                # os.system("source venv/bin/activate")
+                # os.system("pip install -r requirements.txt")
+                #
+                # loading_screen.update_label("Building executable...")
+                # loading_screen.update_progress(60)
+                #
+                # print("Building executable...")
+                # os.system(
+                #     f"pyinstaller --onefile --windowed {local_path}/ChannelExtract.py"
+                # )
 
                 if os.path.exists(os.path.join(local_path, "dist", "ChannelExtract")):
                     print("Executable built successfully")
