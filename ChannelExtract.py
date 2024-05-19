@@ -847,6 +847,34 @@ def check_for_updates():
     local_path = os.path.join(home_dir, "ChannelExtract")
 
     try:
+        try:
+            subprocess.check_output(["git", "--version"])
+        except subprocess.CalledProcessError:
+            raise Exception("Git is not installed")
+
+        try:
+            subprocess.check_output(["pyinstaller", "--version"])
+        except Exception:
+            print("PyInstaller is not installed. Installing...")
+            subprocess.call(["pip", "install", "pyinstaller", "--no-deps"])
+            try:
+                subprocess.check_output(["pyinstaller", "--version"])
+            except Exception:
+                print("Uninstalling 'typing' package...")
+                subprocess.call(
+                    [
+                        "'/Library/Frameworks/Python.framework/Versions/3.10/bin/python3.10'",
+                        "-m",
+                        "pip",
+                        "uninstall",
+                        "-y",
+                        "typing",
+                    ]
+                )
+                try:
+                    subprocess.check_output(["pyinstaller", "--version"])
+                except Exception:
+                    raise Exception("PyInstaller installation failed")
         # Fetch the latest commit hash from the remote repository using git command
         remote_commit = (
             subprocess.check_output(["git", "ls-remote", repo_url, "HEAD"])
