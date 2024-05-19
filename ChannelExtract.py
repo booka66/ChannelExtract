@@ -949,7 +949,7 @@ def check_for_updates():
                 # os.system(
                 #     f"pyinstaller --onefile --windowed {local_path}/ChannelExtract.py"
                 # )
-
+                print("Checking if executable was built...")
                 if os.path.exists(os.path.join(local_path, "dist", "ChannelExtract")):
                     print("Executable built successfully")
 
