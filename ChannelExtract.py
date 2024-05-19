@@ -897,12 +897,22 @@ def check_for_updates():
                 loading_screen.update_label("Restarting app...")
                 loading_screen.update_progress(100)
 
-                # Replace the old executable with the new one
-                os.replace("dist/ChannelExtract", "ChannelExtract")
+                # Replace the old .app with the new one
+                if sys.platform == "darwin":  # macOS
+                    app_dir = "/Applications"
+                elif sys.platform == "win32":
+                    app_dir = os.path.join(os.environ["PROGRAMFILES"], "ChannelExtract")
+                else:
+                    raise Exception("Unsupported operating system")
 
-                QApplication.quit()
+                old_app_path = os.path.join(app_dir, "ChannelExtract.app")
+                new_app_path = os.path.join(local_path, "dist", "ChannelExtract.app")
 
-                subprocess.Popen(["ChannelExtract"])
+                if os.path.exists(old_app_path):
+                    shutil.rmtree(old_app_path)
+
+                shutil.move(new_app_path, app_dir)
+
     except subprocess.CalledProcessError as e:
         error_message = f"Error occurred during update check: {str(e)}"
         print(error_message)
