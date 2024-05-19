@@ -933,6 +933,10 @@ def check_for_updates():
                     if os.path.exists(old_app_path):
                         shutil.rmtree(old_app_path)
 
+                    # Add this check to remove the existing application directory if it exists
+                    if os.path.exists(new_app_path):
+                        shutil.rmtree(new_app_path)
+
                     shutil.move(new_app_path, app_dir)
                     print("Application moved to the Applications folder")
                     if is_application_open("ChannelExtract"):
