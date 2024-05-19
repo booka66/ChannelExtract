@@ -876,6 +876,7 @@ def check_for_updates():
                 QMessageBox.Yes | QMessageBox.No,
             )
             if reply == QMessageBox.Yes:
+                sys.exit()
                 loading_screen.update_label("Updating...")
                 loading_screen.update_progress(25)
 
@@ -901,7 +902,6 @@ def check_for_updates():
 
                 # Restart the app
                 subprocess.Popen(["ChannelExtract"])
-                sys.exit()
     except subprocess.CalledProcessError as e:
         error_message = f"Error occurred during update check: {str(e)}"
         print(error_message)
