@@ -31,7 +31,8 @@ from matplotlib.path import Path
 import matplotlib.image as mpimg
 import subprocess
 import shutil
-import PyInstaller.__main__
+import signal
+import psutil
 
 
 class ScatterPlot(QWidget):
@@ -833,20 +834,21 @@ class LoadingScreen(QWidget):
         self.label.setText(text)
 
 
-def is_application_open(app_name):
-    try:
-        # Check if the application is running using pgrep
-        result = subprocess.check_output(["pgrep", "-f", app_name])
-        return bool(result.strip())
-    except subprocess.CalledProcessError:
-        return False
-
-
 def force_quit_application(app_name):
     try:
-        # Force quit the application using pkill
-        subprocess.call(["pkill", "-f", app_name])
-    except subprocess.CalledProcessError as e:
+        # Iterate over all running processes
+        for proc in psutil.process_iter():
+            try:
+                # Check if the process name matches the application name
+                if proc.name() == app_name:
+                    # Terminate the process
+                    if os.name == "nt":  # Windows
+                        proc.terminate()
+                    else:  # macOS and Linux
+                        proc.send_signal(signal.SIGTERM)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+    except Exception as e:
         print(f"Error occurred while trying to force quit {app_name}: {str(e)}")
 
 
@@ -875,9 +877,6 @@ def run_commands_in_terminal(commands):
 
 
 def check_for_updates():
-    loading_screen = LoadingScreen()
-    loading_screen.show()
-
     repo_url = "https://github.com/booka66/ChannelExtract.git"
     home_dir = os.path.expanduser("~")
     local_path = os.path.join(home_dir, "ChannelExtract")
@@ -916,6 +915,8 @@ def check_for_updates():
                 QMessageBox.Yes | QMessageBox.No,
             )
             if reply == QMessageBox.Yes:
+                loading_screen = LoadingScreen()
+                loading_screen.show()
                 loading_screen.update_label("Updating...")
                 loading_screen.update_progress(25)
 
@@ -931,14 +932,14 @@ def check_for_updates():
 
                 print("Installing dependencies...")
                 commands = [
-                    "cd",
+                    "cd ~",
                     "cd ChannelExtract",
-                    "source venv/bin/activate",
                     "pip install -r requirements.txt",
                     "pyinstaller --onefile --windowed ChannelExtract.py",
-                    f"python updater.py {local_path}",
                 ]
                 run_commands_in_terminal(commands)
+                loading_screen.update_label("Building executable...")
+                loading_screen.update_progress(60)
                 # os.chdir(local_path)
                 # os.system("source venv/bin/activate")
                 # os.system("pip install -r requirements.txt")
@@ -985,21 +986,22 @@ def check_for_updates():
                 else:
                     raise Exception("Unsupported operating system")
 
-                if is_application_open("ChannelExtract"):
-                    force_quit_application("ChannelExtract")
+                loading_screen.update_label("Update complete")
+                loading_screen.update_progress(100)
+                force_quit_application("ChannelExtract")
 
                 # Restart the application
-                subprocess.Popen(
-                    [
-                        os.path.join(
-                            app_dir,
-                            "ChannelExtract.app",
-                            "Contents",
-                            "MacOS",
-                            "ChannelExtract",
-                        )
-                    ]
-                )
+                # subprocess.Popen(
+                #     [
+                #         os.path.join(
+                #             app_dir,
+                #             "ChannelExtract.app",
+                #             "Contents",
+                #             "MacOS",
+                #             "ChannelExtract",
+                #         )
+                #     ]
+                # )
                 sys.exit()
 
     except subprocess.CalledProcessError as e:
