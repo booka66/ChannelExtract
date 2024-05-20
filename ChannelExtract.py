@@ -943,6 +943,10 @@ def check_for_updates():
                     "Update complete. Please restart the application. xoxo - Love, Jake"
                 )
                 loading_screen.update_progress(100)
+            else:
+                loading_screen.close()
+        else:
+            loading_screen.close()
 
     except subprocess.CalledProcessError as e:
         error_message = f"Error occurred during update check: {str(e)}"
@@ -952,8 +956,6 @@ def check_for_updates():
         error_message = f"Error occurred during update check: {str(e)}"
         print(error_message)
         QMessageBox.critical(None, "Update Error", error_message)
-    finally:
-        loading_screen.close()
 
 
 if __name__ == "__main__":
