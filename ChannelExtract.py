@@ -30,9 +30,6 @@ from matplotlib.widgets import LassoSelector
 from matplotlib.path import Path
 import matplotlib.image as mpimg
 import subprocess
-import shutil
-import signal
-import psutil
 
 
 class ScatterPlot(QWidget):
