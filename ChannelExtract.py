@@ -847,24 +847,6 @@ class LoadingScreen(QWidget):
         self.label.setText(text)
 
 
-def force_quit_application(app_name):
-    try:
-        # Iterate over all running processes
-        for proc in psutil.process_iter():
-            try:
-                # Check if the process name matches the application name
-                if proc.name() == app_name:
-                    # Terminate the process
-                    if os.name == "nt":  # Windows
-                        proc.terminate()
-                    else:  # macOS and Linux
-                        proc.send_signal(signal.SIGTERM)
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                pass
-    except Exception as e:
-        print(f"Error occurred while trying to force quit {app_name}: {str(e)}")
-
-
 def run_commands_in_terminal(commands):
     try:
         if sys.platform == "darwin":  # macOS
@@ -961,10 +943,10 @@ def check_for_updates():
                 else:
                     raise Exception("Unsupported operating system")
 
-                loading_screen.update_label("Update complete")
+                loading_screen.update_label(
+                    "Update complete. Please restart the application. xoxo - Love, Jake"
+                )
                 loading_screen.update_progress(100)
-                force_quit_application("ChannelExtract")
-
                 sys.exit()
 
     except subprocess.CalledProcessError as e:
