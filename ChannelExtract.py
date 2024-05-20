@@ -933,12 +933,12 @@ def check_for_updates():
                 loading_screen.update_label("Updating...")
                 loading_screen.update_progress(25)
 
-                # Remove the existing repository if it exists
+                # If the repository exists locally, pull the latest changes
                 if os.path.exists(local_path):
-                    shutil.rmtree(local_path)
-
-                # Clone the latest version of the repository
-                subprocess.call(["git", "clone", repo_url, local_path])
+                    subprocess.call(["git", "-C", local_path, "pull"])
+                else:
+                    # Clone the repository if it doesn't exist locally
+                    subprocess.call(["git", "clone", repo_url, local_path])
 
                 loading_screen.update_label("Installing dependencies...")
                 loading_screen.update_progress(40)
@@ -953,44 +953,6 @@ def check_for_updates():
                 run_commands_in_terminal(commands)
                 loading_screen.update_label("Building executable...")
                 loading_screen.update_progress(60)
-                # os.chdir(local_path)
-                # os.system("source venv/bin/activate")
-                # os.system("pip install -r requirements.txt")
-                #
-                # loading_screen.update_label("Building executable...")
-                # loading_screen.update_progress(60)
-                #
-                # print("Building executable...")
-                # os.system(
-                #     f"pyinstaller --onefile --windowed {local_path}/ChannelExtract.py"
-                # )
-                # print("Checking if executable was built...")
-                # if os.path.exists(os.path.join(local_path, "dist", "ChannelExtract")):
-                #     print("Executable built successfully")
-                #
-                #     # Determine the application directory based on the operating system
-                #     if sys.platform == "darwin":
-                #         app_dir = "/Applications"
-                #     elif sys.platform == "win32":
-                #         app_dir = os.path.join(
-                #             os.environ["PROGRAMFILES"], "ChannelExtract"
-                #         )
-                #     else:
-                #         raise Exception("Unsupported operating system")
-                #
-                #     # Remove the existing application in the Applications folder if it exists
-                #     old_app_path = os.path.join(app_dir, "ChannelExtract.app")
-                #     if os.path.exists(old_app_path):
-                #         shutil.rmtree(old_app_path)
-                #
-                #     # Move the newly built application to the Applications folder
-                #     new_app_path = os.path.join(
-                #         local_path, "dist", "ChannelExtract.app"
-                #     )
-                #     shutil.move(new_app_path, app_dir)
-                #     print("Application moved to the Applications folder")
-                #
-                #     # Force quit the old version of the application if it's running
 
                 if sys.platform == "darwin":
                     app_dir = "/Applications"
@@ -1003,18 +965,6 @@ def check_for_updates():
                 loading_screen.update_progress(100)
                 force_quit_application("ChannelExtract")
 
-                # Restart the application
-                # subprocess.Popen(
-                #     [
-                #         os.path.join(
-                #             app_dir,
-                #             "ChannelExtract.app",
-                #             "Contents",
-                #             "MacOS",
-                #             "ChannelExtract",
-                #         )
-                #     ]
-                # )
                 sys.exit()
 
     except subprocess.CalledProcessError as e:
