@@ -924,8 +924,7 @@ def check_for_updates():
 
                 print("Installing dependencies...")
                 commands = [
-                    "cd ~",
-                    "cd ChannelExtract",
+                    "cd ../",
                     "pip install -r requirements.txt",
                     "pyinstaller --onefile --windowed ChannelExtract.py",
                 ]
