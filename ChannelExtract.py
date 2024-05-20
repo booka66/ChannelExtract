@@ -301,6 +301,7 @@ class ChannelExtract(QMainWindow):
         fileNames, _ = QFileDialog.getOpenFileNames(
             self, "Open .brw Files", "", "BRW Files (*.brw)", options=options
         )
+
         if fileNames:
             tableData = []
             self.imageDict = {}  # Create a dictionary to store images
@@ -311,7 +312,6 @@ class ChannelExtract(QMainWindow):
                 chsList = parameters["recElectrodeList"]
                 filePath = os.path.dirname(fileName)
                 baseName = os.path.basename(fileName)
-
                 brwFileName = os.path.basename(fileName)
                 dateSlice = "_".join(brwFileName.split("_")[:4])
                 dateSliceNumber = (
@@ -319,30 +319,41 @@ class ChannelExtract(QMainWindow):
                     + "slice"
                     + dateSlice.split("slice")[1][:1]
                 )
-                imageName = f"{dateSliceNumber}_pic_cropped.jpg"
+                imageName = (
+                    f"{dateSliceNumber}_pic_cropped.jpg".lower()
+                )  # Convert to lowercase
                 imageFolder = os.path.dirname(fileName)
                 imagePath = os.path.join(imageFolder, imageName)
 
                 if os.path.exists(imagePath):
                     image = mpimg.imread(imagePath)
                 else:
-                    msg = QMessageBox()
-                    msg.setIcon(QMessageBox.Information)
-                    msg.setText(f"No image found, manually select image for {baseName}")
-                    msg.setWindowTitle("Image Not Found")
-                    msg.exec_()
-
-                    imageFileName, _ = QFileDialog.getOpenFileName(
-                        self,
-                        "Upload Slice Image",
-                        "",
-                        "Image Files (*.jpg *.png)",
-                        options=options,
-                    )
-                    if imageFileName:
-                        image = mpimg.imread(imageFileName)
+                    # Search for the image file in a case-insensitive manner
+                    imageFiles = [
+                        f for f in os.listdir(imageFolder) if f.lower() == imageName
+                    ]
+                    if imageFiles:
+                        imagePath = os.path.join(imageFolder, imageFiles[0])
+                        image = mpimg.imread(imagePath)
                     else:
-                        image = None
+                        msg = QMessageBox()
+                        msg.setIcon(QMessageBox.Information)
+                        msg.setText(
+                            f"No image found, manually select image for {baseName}"
+                        )
+                        msg.setWindowTitle("Image Not Found")
+                        msg.exec_()
+                        imageFileName, _ = QFileDialog.getOpenFileName(
+                            self,
+                            "Upload Slice Image",
+                            "",
+                            "Image Files (*.jpg *.png)",
+                            options=options,
+                        )
+                        if imageFileName:
+                            image = mpimg.imread(imageFileName)
+                        else:
+                            image = None
 
                 self.imageDict[fileName] = (
                     image  # Store the image in the dictionary using the file name as the key
@@ -362,7 +373,9 @@ class ChannelExtract(QMainWindow):
                         QPushButton("Select"),
                     ]
                 )
+
                 h5.close()
+
             self.populateTable(tableData)
 
     def get_type(self, h5):
