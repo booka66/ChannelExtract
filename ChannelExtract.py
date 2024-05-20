@@ -954,7 +954,6 @@ def check_for_updates():
         QMessageBox.critical(None, "Update Error", error_message)
     finally:
         loading_screen.close()
-        sys.exit()
 
 
 if __name__ == "__main__":
