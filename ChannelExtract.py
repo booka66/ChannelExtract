@@ -316,45 +316,52 @@ class ChannelExtract(QMainWindow):
                     + "slice"
                     + dateSlice.split("slice")[1][:1]
                 )
-                imageName = (
-                    f"{dateSliceNumber}_pic_cropped.jpg".lower()
-                )  # Convert to lowercase
+                imageName = f"{dateSliceNumber}_pic_cropped.jpg"
                 imageFolder = os.path.dirname(fileName)
                 imagePath = os.path.join(imageFolder, imageName)
 
+                image = None
                 if os.path.exists(imagePath):
                     image = mpimg.imread(imagePath)
                 else:
-                    # Search for the image file in a case-insensitive manner
+                    # Search for the image file in the same folder as the BRW file
                     imageFiles = [
-                        f for f in os.listdir(imageFolder) if f.lower() == imageName
+                        f
+                        for f in os.listdir(imageFolder)
+                        if f.lower().endswith((".jpg", ".png"))
                     ]
                     if imageFiles:
-                        imagePath = os.path.join(imageFolder, imageFiles[0])
-                        image = mpimg.imread(imagePath)
-                    else:
-                        msg = QMessageBox()
-                        msg.setIcon(QMessageBox.Information)
-                        msg.setText(
-                            f"No image found, manually select image for {baseName}"
-                        )
-                        msg.setWindowTitle("Image Not Found")
-                        msg.exec_()
-                        imageFileName, _ = QFileDialog.getOpenFileName(
-                            self,
-                            "Upload Slice Image",
-                            "",
-                            "Image Files (*.jpg *.png)",
-                            options=options,
-                        )
-                        if imageFileName:
+                        for imageFile in imageFiles:
+                            imagePath = os.path.join(imageFolder, imageFile)
+                            try:
+                                image = mpimg.imread(imagePath)
+                                break
+                            except Exception as e:
+                                print(f"Error reading image file {imagePath}: {str(e)}")
+
+                if image is None:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Information)
+                    msg.setText(f"No image found, manually select image for {baseName}")
+                    msg.setWindowTitle("Image Not Found")
+                    msg.exec_()
+                    imageFileName, _ = QFileDialog.getOpenFileName(
+                        self,
+                        "Upload Slice Image",
+                        "",
+                        "Image Files (*.jpg *.png)",
+                        options=options,
+                    )
+                    if imageFileName:
+                        try:
                             image = mpimg.imread(imageFileName)
-                        else:
+                        except Exception as e:
+                            print(
+                                f"Error reading selected image file {imageFileName}: {str(e)}"
+                            )
                             image = None
 
-                self.imageDict[fileName] = (
-                    image  # Store the image in the dictionary using the file name as the key
-                )
+                self.imageDict[fileName] = image
 
                 tableData.append(
                     [
@@ -401,6 +408,9 @@ class ChannelExtract(QMainWindow):
                 self.inputGridWidget.ax.imshow(
                     self.uploadedImage, extent=self.size, aspect="auto"
                 )
+            else:
+                self.inputGridWidget.ax.set_xlim(self.size[0], self.size[1])
+                self.inputGridWidget.ax.set_ylim(self.size[2], self.size[3])
             self.inputGridWidget.ax.scatter(Xs, Ys, c="k", s=5)
 
             self.inputGridWidget.ax.set_xlim(self.size[0], self.size[1])
@@ -714,6 +724,9 @@ class ChannelExtract(QMainWindow):
                 self.outputGridWidget.ax.imshow(
                     self.uploadedImage, extent=self.size, aspect="auto"
                 )
+            else:
+                self.outputGridWidget.ax.set_xlim(self.size[0], self.size[1])
+                self.outputGridWidget.ax.set_ylim(self.size[2], self.size[3])
             self.outputGridWidget.ax.scatter(xs, ys, c="grey", s=5, alpha=0.1)
             self.outputGridWidget.ax.scatter(chX, chY, c="red", s=5)
             self.outputGridWidget.ax.set_xlim(self.size[0], self.size[1])
