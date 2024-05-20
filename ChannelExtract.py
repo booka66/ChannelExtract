@@ -943,6 +943,7 @@ def check_for_updates():
                     "Update complete. Please restart the application. xoxo - Love, Jake"
                 )
                 loading_screen.update_progress(100)
+                sys.exit()
             else:
                 loading_screen.close()
         else:
