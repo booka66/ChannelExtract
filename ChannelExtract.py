@@ -880,6 +880,7 @@ def check_for_updates():
     repo_url = "https://github.com/booka66/ChannelExtract.git"
     home_dir = os.path.expanduser("~")
     local_path = os.path.join(home_dir, "ChannelExtract")
+    loading_screen = LoadingScreen()
 
     try:
         try:
@@ -915,7 +916,6 @@ def check_for_updates():
                 QMessageBox.Yes | QMessageBox.No,
             )
             if reply == QMessageBox.Yes:
-                loading_screen = LoadingScreen()
                 loading_screen.show()
                 loading_screen.update_label("Updating...")
                 loading_screen.update_progress(25)
