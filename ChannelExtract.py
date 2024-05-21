@@ -586,23 +586,15 @@ class ChannelExtract(QMainWindow):
         # Check if there was a previously selected row
         previously_selected_row = self.dataTable.currentRow()
         if previously_selected_row >= 0 and previously_selected_row != row:
-            # Update the status and enable the select button for the previously selected row
-            previous_status_item = self.dataTable.status_items[previously_selected_row]
-            if previous_status_item.background() != QColor("green"):
-                previous_status_item.setBackground(QColor("red"))
-
-            previous_select_button = self.dataTable.cellWidget(
+            # Reactivate the previously selected row
+            self.dataTable.cellWidget(
                 previously_selected_row, self.dataTable.columnCount() - 1
-            )
-            if previous_select_button is not None:
-                previous_select_button.setEnabled(True)
-                previous_select_button.setText("Select")
+            ).setEnabled(True)
 
-        status_item = self.dataTable.status_items[row]
-        status_item.setBackground(QColor("yellow"))
-
-        select_button = self.dataTable.select_buttons[row]
-        select_button.setEnabled(False)
+        # Disable the select button for the currently selected row
+        self.dataTable.cellWidget(row, self.dataTable.columnCount() - 1).setEnabled(
+            False
+        )
 
         # Clear the output grid
         self.outputGridWidget.ax.clear()
