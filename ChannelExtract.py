@@ -240,7 +240,7 @@ class ChannelExtract(QMainWindow):
         self.runDownsampleExportButton.clicked.connect(self.runDownsampleExport)
 
         # Open GUI button
-        openGUIButton = QPushButton("Open in MEA GUI")
+        openGUIButton = QPushButton("Export/Open GUI")
         openGUIButton.setStyleSheet(
             "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
         )
@@ -333,6 +333,7 @@ class ChannelExtract(QMainWindow):
                 msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                 msg.setDefaultButton(QMessageBox.Yes)
                 response = msg.exec_()
+                self.runDownsampleExport()
                 if response == QMessageBox.Yes:
                     fileName = os.path.join(
                         self.dataTable.item(selected_row, 0).text(),
@@ -340,7 +341,7 @@ class ChannelExtract(QMainWindow):
                     )
                     commands = [
                         "cd ../../Jake-Squared/Python-GUI",
-                        f"py main.py {fileName}",
+                        f"py main.py {fileName}_resample_{int(self.downsampleSpinBox.value())}.brw",
                     ]
                     run_commands_in_terminal(commands)
 
