@@ -233,14 +233,14 @@ class ChannelExtract(QMainWindow):
         exportButton.clicked.connect(self.exportChannels)
 
         # Create the "Run Downsample Export" button
-        self.runDownsampleExportButton = QPushButton("Run Downsample Export")
+        self.runDownsampleExportButton = QPushButton("Downsample Export")
         self.runDownsampleExportButton.setStyleSheet(
             "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
         )
         self.runDownsampleExportButton.clicked.connect(self.runDownsampleExport)
 
         # Open GUI button
-        openGUIButton = QPushButton("Open MEA GUI")
+        openGUIButton = QPushButton("Open in MEA GUI")
         openGUIButton.setStyleSheet(
             "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
         )
@@ -301,11 +301,54 @@ class ChannelExtract(QMainWindow):
         self.outputGridWidget.setFixedSize(size, size)
 
     def openGUI(self):
-        commands = [
-            "cd ../../Jake-Squared/Python-GUI",
-            "py main.py",
-        ]
-        run_commands_in_terminal(commands)
+        # get green rows
+        green_rows = []
+        for row in range(self.dataTable.rowCount()):
+            status_item = self.dataTable.item(row, self.dataTable.columnCount() - 2)
+            if status_item.background() == QColor("green"):
+                green_rows.append(row)
+
+        if not green_rows:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Information)
+            msg.setText("No files have been exported.")
+            msg.setWindowTitle("No Files Exported")
+            msg.exec_()
+            return
+
+        # choose what file to open
+        if len(green_rows) > 1:
+            if self.dataTable.currentRow().background() != QColor("green"):
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Information)
+                msg.setText("Please select an exported file to open.")
+                msg.setWindowTitle("No Exported File Selected")
+                msg.exec_()
+            else:
+                selected_row = self.dataTable.currentRow()
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Question)
+                msg.setText(f"Do you want to open the selected file in the MEA GUI?")
+                msg.setWindowTitle("Open in MEA GUI")
+                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                msg.setDefaultButton(QMessageBox.Yes)
+                response = msg.exec_()
+                if response == QMessageBox.Yes:
+                    fileName = os.path.join(
+                        self.dataTable.item(selected_row, 0).text(),
+                        self.dataTable.item(selected_row, 1).text(),
+                    )
+                    commands = [
+                        "cd ../../Jake-Squared/Python-GUI",
+                        f"py main.py {fileName}",
+                    ]
+                    run_commands_in_terminal(commands)
+
+        # commands = [
+        #     "cd ../../Jake-Squared/Python-GUI",
+        #     "py main.py",
+        # ]
+        # run_commands_in_terminal(commands)
 
     def runDownsampleExport(self):
         if not self.folderName:
