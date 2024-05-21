@@ -300,20 +300,28 @@ class ChannelExtract(QMainWindow):
 
     def uploadFiles(self):
         options = QFileDialog.Options()
-        fileNames, _ = QFileDialog.getOpenFileNames(
-            self, "Open .brw Files", "", "BRW Files (*.brw)", options=options
+        folderName = QFileDialog.getExistingDirectory(
+            self, "Select Folder", "", options=options
         )
 
-        if fileNames:
+        if folderName:
             tableData = []
             self.imageDict = {}  # Create a dictionary to store images
-            for fileName in fileNames:
-                fileName = os.path.normpath(fileName)
-                h5 = h5py.File(fileName, "r")
-                self.get_type(h5)
-                parameters = self.parameter(h5)
+
+            # Get all .brw files in the selected folder
+            brwFiles = [f for f in os.listdir(folderName) if f.endswith(".brw")]
+
+            for brwFile in brwFiles:
+                try:
+                    fileName = os.path.join(folderName, brwFile)
+                    h5 = h5py.File(fileName, "r")
+                    self.get_type(h5)
+                    parameters = self.parameter(h5)
+                except Exception as e:
+                    print(f"Error reading file {brwFile}: {str(e)}")
+                    continue
                 chsList = parameters["recElectrodeList"]
-                filePath = os.path.dirname(fileName)
+                filePath = folderName
                 baseName = os.path.basename(fileName)
                 brwFileName = os.path.basename(fileName)
                 dateSlice = "_".join(brwFileName.split("_")[:4])
@@ -325,7 +333,7 @@ class ChannelExtract(QMainWindow):
                 imageName = (
                     f"{dateSliceNumber}_pic_cropped.jpg".lower()
                 )  # Convert to lowercase
-                imageFolder = os.path.dirname(fileName)
+                imageFolder = folderName
                 imagePath = os.path.join(imageFolder, imageName)
 
                 if os.path.exists(imagePath):
