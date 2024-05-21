@@ -124,7 +124,7 @@ class ChannelExtract(QMainWindow):
         self.centralWidget.setLayout(self.mainLayout)
 
         # Create header
-        self.headerLabel = QLabel("EEEEP")
+        self.headerLabel = QLabel("Channel Selection Toolbox")
         self.headerLabel.setAlignment(Qt.AlignCenter)
         self.headerLabel.setStyleSheet(
             "background-color: #ADD8E6; color: #000080; font-size: 20px; padding: 10px;"
@@ -940,6 +940,12 @@ def check_for_updates():
                     "cd ../",
                     "pip install -r requirements.txt",
                     "pyinstaller --onefile --windowed ChannelExtract.py",
+                    "echo 'Update complete. Please restart the application. xoxo - Love, Jake'",
+                    "echo 'Opening application directory...'",
+                    "timeout /t 5 /nobreak",
+                    "cd dist",
+                    "start ChannelExtract.exe",
+                    "taskkill /IM cmd.exe /F",
                 ]
                 run_commands_in_terminal(commands)
                 loading_screen.update_label("Building executable...")
