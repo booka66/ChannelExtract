@@ -782,7 +782,7 @@ def run(folder, drive_letter):
         filematch = False
         if filename.split("_")[-1] == "exportCh.brw":
             chfileName, recfileName, chfileInfo, parameters, filematch = file_check(
-                folder, filename, drive_letter
+                folder, filename
             )
 
         if (
