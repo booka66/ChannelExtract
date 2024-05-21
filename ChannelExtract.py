@@ -30,6 +30,7 @@ from matplotlib.widgets import LassoSelector
 from matplotlib.path import Path
 import matplotlib.image as mpimg
 import subprocess
+from export_to_brw import run
 
 
 class ScatterPlot(QWidget):
@@ -232,6 +233,13 @@ class ChannelExtract(QMainWindow):
         )
         exportButton.clicked.connect(self.exportChannels)
 
+        # Create the "Run Downsample Export" button
+        self.runDownsampleExportButton = QPushButton("Run Downsample Export")
+        self.runDownsampleExportButton.setStyleSheet(
+            "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
+        )
+        self.runDownsampleExportButton.clicked.connect(self.runDownsampleExport)
+
         settingsLayout.addWidget(self.channelCountLabel)
         settingsLayout.addWidget(self.channelCountValue)
         settingsLayout.addWidget(rowSkipLabel)
@@ -245,6 +253,7 @@ class ChannelExtract(QMainWindow):
         settingsLayout.addWidget(endTimeLabel)
         settingsLayout.addWidget(self.endTimeSpinBox)
         settingsLayout.addWidget(exportButton)
+        settingsLayout.addWidget(self.runDownsampleExportButton)
 
         settingsWidget = QWidget()
         settingsWidget.setLayout(settingsLayout)
@@ -273,6 +282,7 @@ class ChannelExtract(QMainWindow):
         self.size = [0, 65, 65, 0]
         self.dataTable.status_items = {}
         self.dataTable.select_buttons = {}
+        self.folderName = None
 
         self.show()
 
@@ -281,6 +291,52 @@ class ChannelExtract(QMainWindow):
         size = min(self.width() // 3, self.height() // 2)
         self.inputGridWidget.setFixedSize(size, size)
         self.outputGridWidget.setFixedSize(size, size)
+
+    def runDownsampleExport(self):
+        if not self.folderName:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Information)
+            msg.setText("Please upload folder first.")
+            msg.setWindowTitle("No Folder Uploaded")
+            msg.exec_()
+            return
+        green_rows = []
+        for row in range(self.dataTable.rowCount()):
+            status_item = self.dataTable.item(row, self.dataTable.columnCount() - 2)
+            if status_item.background() == QColor("green"):
+                green_rows.append(row)
+
+        if green_rows:
+            print("Rows with green status:")
+            for row in green_rows:
+                print(f"Row {row}")
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setText(
+                "Do you want to run the downsample export on the selected files?"
+            )
+            msg.setWindowTitle("Run Downsample Export")
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            msg.setDefaultButton(QMessageBox.No)
+            response = msg.exec_()
+            if response == QMessageBox.Yes:
+                self.loading_screen = LoadingScreen()
+                self.loading_screen.show()
+                run(self.folderName, self.loading_screen)
+
+                self.loading_screen.update_label("Running downsample export...")
+                self.loading_screen.progress_bar.setValue(0)
+
+                self.loading_screen.update_label("Downsample export complete.")
+                self.loading_screen.progress_bar.setValue(100)
+                self.loading_screen.close()
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Information)
+            msg.setText("No files have been exported.")
+            msg.setWindowTitle("No Files Exported")
+            msg.exec_()
+            return
 
     def updateChannelCount(self):
         selectedPoints = self.inputGridWidget.selected_points
@@ -300,20 +356,20 @@ class ChannelExtract(QMainWindow):
 
     def uploadFiles(self):
         options = QFileDialog.Options()
-        folderName = QFileDialog.getExistingDirectory(
+        self.folderName = QFileDialog.getExistingDirectory(
             self, "Select Folder", "", options=options
         )
 
-        if folderName:
+        if self.folderName:
             tableData = []
             self.imageDict = {}  # Create a dictionary to store images
 
             # Get all .brw files in the selected folder
-            brwFiles = [f for f in os.listdir(folderName) if f.endswith(".brw")]
+            brwFiles = [f for f in os.listdir(self.folderName) if f.endswith(".brw")]
 
             for brwFile in brwFiles:
                 try:
-                    fileName = os.path.join(folderName, brwFile)
+                    fileName = os.path.join(self.folderName, brwFile)
                     h5 = h5py.File(fileName, "r")
                     self.get_type(h5)
                     parameters = self.parameter(h5)
@@ -321,7 +377,7 @@ class ChannelExtract(QMainWindow):
                     print(f"Error reading file {brwFile}: {str(e)}")
                     continue
                 chsList = parameters["recElectrodeList"]
-                filePath = folderName
+                filePath = self.folderName
                 baseName = os.path.basename(fileName)
                 brwFileName = os.path.basename(fileName)
                 dateSlice = "_".join(brwFileName.split("_")[:4])
@@ -333,7 +389,7 @@ class ChannelExtract(QMainWindow):
                 imageName = (
                     f"{dateSliceNumber}_pic_cropped.jpg".lower()
                 )  # Convert to lowercase
-                imageFolder = folderName
+                imageFolder = self.folderName
                 imagePath = os.path.join(imageFolder, imageName)
 
                 if os.path.exists(imagePath):
