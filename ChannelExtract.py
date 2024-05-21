@@ -969,7 +969,7 @@ def check_for_updates():
     except Exception as e:
         error_message = f"Error occurred during update check: {str(e)}"
         print(error_message)
-        QMessageBox.critical(None, "Update Error", error_message)
+        QMessageBox.critical(None, "Update Error Uh Oh", error_message)
 
 
 if __name__ == "__main__":
