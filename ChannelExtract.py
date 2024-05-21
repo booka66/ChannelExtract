@@ -300,7 +300,7 @@ class ChannelExtract(QMainWindow):
         self.outputGridWidget.setFixedSize(size, size)
 
     def openGUI(self):
-        commands = ["cd ../../Jake-Squared/Python\\ Implementation", "py main.py"]
+        commands = ["cd '..\\..\\Jake-Squared\\Python Implementation'", "py main.py"]
         run_commands_in_terminal(commands)
 
     def runDownsampleExport(self):
