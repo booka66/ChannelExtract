@@ -303,6 +303,7 @@ class ChannelExtract(QMainWindow):
             tableData = []
             self.imageDict = {}  # Create a dictionary to store images
             for fileName in fileNames:
+                fileName = os.path.normpath(fileName)
                 h5 = h5py.File(fileName, "r")
                 self.get_type(h5)
                 parameters = self.parameter(h5)
@@ -486,6 +487,7 @@ class ChannelExtract(QMainWindow):
         fileName = os.path.join(
             self.dataTable.item(row, 0).text(), self.dataTable.item(row, 1).text()
         )
+        fileName = os.path.normpath(fileName)
         self.inputFileName = fileName
         self.uploadedImage = self.imageDict.get(
             fileName
