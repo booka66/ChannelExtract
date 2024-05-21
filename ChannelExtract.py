@@ -325,6 +325,8 @@ class ChannelExtract(QMainWindow):
                     "cd ../",
                     f"py export_to_brw.py {self.folderName}",
                     "cd dist",
+                    "echo 'Done :D Closing in 5 seconds...'",
+                    "timeout /t 5 /nobreak",
                     "taskkill /IM cmd.exe /F",
                 ]
                 run_commands_in_terminal(command)
@@ -1001,8 +1003,8 @@ def check_for_updates():
                     "cd ../",
                     "pip install -r requirements.txt",
                     "pyinstaller --onefile --windowed ChannelExtract.py",
-                    'echo -e "\\033[32mUpdate complete. Please restart the application. xoxo - Love, Jake\\033[0m"',
-                    'echo -e "\\033[34mOpening application directory...\\033[0m"',
+                    "color 0A & echo Update complete. Please restart the application. xoxo - Love, Jake & color",
+                    "color 0B & echo Opening application directory... & color",
                     "timeout /t 5 /nobreak",
                     "cd dist",
                     "start ChannelExtract.exe",
