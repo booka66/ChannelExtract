@@ -36,6 +36,7 @@ class ScatterPlot(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.initUI()
+        self.parent = parent
 
     def initUI(self):
         layout = QVBoxLayout()
@@ -98,14 +99,12 @@ class ScatterPlot(QWidget):
             self.lasso_line.remove()
 
         self.lasso_line = self.ax.plot(
-            verts[:, 0], verts[:, 1], "b-", linewidth=2, alpha=0.5
+            verts[:, 0], verts[:, 1], "b-", linewidth=2, alpha=1
         )[0]
 
         self.canvas.draw()
 
-        print("Selected points:")
-        for point in self.selected_points:
-            print(point)
+        self.parent.channelCountValue.setText(str(len(self.selected_points)))
 
     def onrelease(self, event):
         if self.lasso.active:
@@ -183,21 +182,7 @@ class ChannelExtract(QMainWindow):
         self.inputGridLabel = QLabel("Select Channels for Export")
         self.inputGridLabel.setAlignment(Qt.AlignCenter)
         self.inputGridLabel.setStyleSheet("font-size: 18px;")
-        self.inputGridWidget = ScatterPlot()
-
-        inputGridLayout = QVBoxLayout()
-        inputGridLayout.addWidget(self.inputGridLabel)
-        inputGridLayout.addWidget(self.inputGridWidget)
-        channelLayout.addLayout(inputGridLayout, stretch=3)  # Increased stretch factor
-
-        # Create channel selection layout
-        channelLayout = QHBoxLayout()
-
-        # Create input grid
-        self.inputGridLabel = QLabel("Select Channels for Export")
-        self.inputGridLabel.setAlignment(Qt.AlignCenter)
-        self.inputGridLabel.setStyleSheet("font-size: 18px;")
-        self.inputGridWidget = ScatterPlot()
+        self.inputGridWidget = ScatterPlot(self)
         self.inputGridWidget.setMinimumSize(
             800, 800
         )  # Set minimum size for the input grid
@@ -205,7 +190,7 @@ class ChannelExtract(QMainWindow):
         inputGridLayout = QVBoxLayout()
         inputGridLayout.addWidget(self.inputGridLabel)
         inputGridLayout.addWidget(self.inputGridWidget)
-        channelLayout.addLayout(inputGridLayout)
+        channelLayout.addLayout(inputGridLayout, stretch=3)
 
         # Create channel count and settings layout
         settingsLayout = QVBoxLayout()
@@ -220,10 +205,14 @@ class ChannelExtract(QMainWindow):
         rowSkipLabel = QLabel("# Rows to Skip:")
         self.rowSkipSpinBox = QSpinBox()
         self.rowSkipSpinBox.setRange(0, 3)
+        self.rowSkipSpinBox.setValue(0)
+        self.rowSkipSpinBox.valueChanged.connect(self.updateChannelCount)
 
         colSkipLabel = QLabel("# Columns to Skip:")
         self.colSkipSpinBox = QSpinBox()
         self.colSkipSpinBox.setRange(0, 3)
+        self.colSkipSpinBox.setValue(0)
+        self.colSkipSpinBox.valueChanged.connect(self.updateChannelCount)
 
         downsampleLabel = QLabel("Downsampling (Hz):")
         self.downsampleSpinBox = QDoubleSpinBox()
@@ -292,6 +281,22 @@ class ChannelExtract(QMainWindow):
         size = min(self.width() // 3, self.height() // 2)
         self.inputGridWidget.setFixedSize(size, size)
         self.outputGridWidget.setFixedSize(size, size)
+
+    def updateChannelCount(self):
+        selectedPoints = self.inputGridWidget.selected_points
+        row_step = self.rowSkipSpinBox.value()
+        col_step = self.colSkipSpinBox.value()
+
+        if selectedPoints is None:
+            channel_count = 0
+        else:
+            channel_count = sum(
+                1
+                for x, y in selectedPoints
+                if y % (row_step + 1) == 0 and x % (col_step + 1) == 0
+            )
+
+        self.channelCountValue.setText(str(channel_count))
 
     def uploadFiles(self):
         options = QFileDialog.Options()
@@ -677,8 +682,6 @@ class ChannelExtract(QMainWindow):
                 ):
                     chX.append(x)
                     chY.append(y)
-            print("Selected Channels: ", len(chX))
-            print("Opening file:")
             h5 = h5py.File(self.inputFileName, "r")
             parameters = self.parameter(h5)
             chsList = parameters["recElectrodeList"]
