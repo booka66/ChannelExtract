@@ -321,13 +321,10 @@ class ChannelExtract(QMainWindow):
                 green_rows.append(row)
 
         if green_rows:
-            print("Rows with green status:")
-            for row in green_rows:
-                print(f"Row {row}")
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Question)
             msg.setText(
-                "Do you want to run the downsample export on the selected files?"
+                f"Do you want to run the downsample export on {len(green_rows)} exported files?"
             )
             msg.setWindowTitle("Run Downsample Export")
             msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)

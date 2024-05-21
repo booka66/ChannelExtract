@@ -13,8 +13,6 @@ pyinstaller-hooks-contrib
 pyparsing
 PyQt5
 python-dateutil
-setuptools
-six
 multiprocessing
 PyWavelets
 json
