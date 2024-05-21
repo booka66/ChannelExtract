@@ -5,10 +5,10 @@ from multiprocessing import Pool
 import pywt
 
 # print(sys.version_info)
-assert (sys.version_info[0], sys.version_info[1]) == (
-    3,
-    7,
-), "Please install/setup Python environment: Version-3.7"
+# assert (sys.version_info[0], sys.version_info[1]) == (
+#     3,
+#     7,
+# ), "Please install/setup Python environment: Version-3.7"
 
 import numpy as np
 import h5py
