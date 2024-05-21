@@ -116,8 +116,6 @@ class ChannelExtract(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Channel Selection Toolbox")
-        # Make it so that it is the biggest size possible
-        self.showMaximized()
         # Create main widget and layout
         self.centralWidget = QWidget(self)
         self.setCentralWidget(self.centralWidget)
@@ -293,7 +291,7 @@ class ChannelExtract(QMainWindow):
         self.folderName = None
         self.previously_selected_row = None
 
-        self.show()
+        self.showMaximized()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
