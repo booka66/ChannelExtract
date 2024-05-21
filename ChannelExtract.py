@@ -290,6 +290,7 @@ class ChannelExtract(QMainWindow):
         self.dataTable.status_items = {}
         self.dataTable.select_buttons = {}
         self.folderName = None
+        self.previously_selected_row = None
 
         self.show()
 
@@ -584,11 +585,13 @@ class ChannelExtract(QMainWindow):
         self.updateGrid()
 
         # Check if there was a previously selected row
-        previously_selected_row = self.dataTable.currentRow()
-        if previously_selected_row >= 0 and previously_selected_row != row:
+        if (
+            self.previously_selected_row is not None
+            and self.previously_selected_row != row
+        ):
             # Reactivate the previously selected row
             self.dataTable.cellWidget(
-                previously_selected_row, self.dataTable.columnCount() - 1
+                self.previously_selected_row, self.dataTable.columnCount() - 1
             ).setEnabled(True)
 
         # Disable the select button for the currently selected row
@@ -601,6 +604,7 @@ class ChannelExtract(QMainWindow):
         self.outputGridWidget.canvas.draw()
 
         self.dataTable.selectRow(row)
+        self.previously_selected_row = row
 
     def parameter(self, h5):
         if self.typ == "bw4":
