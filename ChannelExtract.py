@@ -37,6 +37,7 @@ class ScatterPlot(QWidget):
         super().__init__(parent)
         self.initUI()
         self.parent = parent
+        self.selected_points = []
 
     def initUI(self):
         layout = QVBoxLayout()
@@ -360,8 +361,11 @@ class ChannelExtract(QMainWindow):
             return
 
     def updateChannelCount(self):
-        selectedPoints = self.inputGridWidget.selected_points
-        if not selectedPoints:
+        try:
+            selectedPoints = self.inputGridWidget.selected_points
+        except Exception as e:
+            print(f"Error updating channel count: {str(e)}")
+        if selectedPoints:
             row_step = self.rowSkipSpinBox.value()
             col_step = self.colSkipSpinBox.value()
 
