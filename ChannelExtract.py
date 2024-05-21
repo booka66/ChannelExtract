@@ -300,7 +300,13 @@ class ChannelExtract(QMainWindow):
         self.outputGridWidget.setFixedSize(size, size)
 
     def openGUI(self):
-        commands = ["cd '..\\..\\Jake-Squared\\Python Implementation'", "py main.py"]
+        commands = [
+            "cd ..",
+            "cd ..",
+            "cd Jake-Squared",
+            'cd "Python Implementation"',
+            "py main.py",
+        ]
         run_commands_in_terminal(commands)
 
     def runDownsampleExport(self):
@@ -1015,8 +1021,11 @@ def check_for_updates():
                     "cd ../",
                     "pip install -r requirements.txt",
                     "pyinstaller --onefile --windowed ChannelExtract.py",
-                    "color 0A & echo Update complete. Please restart the application. xoxo - Love, Jake & color",
-                    "color 0B & echo Opening application directory... & color",
+                    "echo.",
+                    "echo *************************************************************************************",
+                    "echo Update complete! Imma go ahead and restart the application for you. xoxo - Love, Jake",
+                    "echo *************************************************************************************",
+                    "echo.",
                     "timeout /t 5 /nobreak",
                     "cd dist",
                     "start ChannelExtract.exe",
