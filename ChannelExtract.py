@@ -392,6 +392,10 @@ class ChannelExtract(QMainWindow):
             for brwFile in brwFiles:
                 try:
                     fileName = os.path.join(self.folderName, brwFile)
+                    if fileName.__contains__("resample") or fileName.__contains__(
+                        "exportCh"
+                    ):
+                        continue
                     h5 = h5py.File(fileName, "r")
                     self.get_type(h5)
                     parameters = self.parameter(h5)
