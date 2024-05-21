@@ -776,7 +776,7 @@ def file_check(path, filename, drive_letter):
 
 def run(folder, drive_letter):
     fileCount = 1
-    os.chdir(drive_letter + ":\\" + folder)
+    os.chdir(drive_letter)
     for filename in os.listdir(folder):
         filematch = False
         if filename.split("_")[-1] == "exportCh.brw":
