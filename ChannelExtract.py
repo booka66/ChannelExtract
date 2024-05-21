@@ -333,9 +333,10 @@ class ChannelExtract(QMainWindow):
             if response == QMessageBox.Yes:
                 self.loading_screen = LoadingScreen()
                 self.loading_screen.show()
+                driveLetter = os.path.splitdrive(self.folderName)[0]
                 command = [
                     "cd ../",
-                    f"py export_to_brw.py {self.folderName}",
+                    f"py export_to_brw.py {self.folderName} {driveLetter}",
                     "cd dist",
                     "echo 'Done :D Closing in 5 seconds...'",
                     "timeout /t 5 /nobreak",
