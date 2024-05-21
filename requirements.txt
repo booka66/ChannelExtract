@@ -4,6 +4,5 @@ numpy
 pyinstaller
 PyQt5
 PyWavelets
-json
 scipy
 tqdm
