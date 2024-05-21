@@ -334,6 +334,7 @@ class ChannelExtract(QMainWindow):
                 self.loading_screen = LoadingScreen()
                 self.loading_screen.show()
                 driveLetter = os.path.splitdrive(self.folderName)[0]
+                print(driveLetter)
                 command = [
                     "cd ../",
                     f"py export_to_brw.py {self.folderName} {driveLetter}",

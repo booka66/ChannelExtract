@@ -754,12 +754,13 @@ def extBW5_RAW(chfileName, recfileName, chfileInfo, parameters):
     return totTime, output_path
 
 
-def file_check(path, filename, drive_letter):
-    chfilePath = os.path.join(drive_letter + ":\\" + path, filename)
+def file_check(path, filename):
+    #    chfileName = path+"\\"+filename
+    chfilePath = os.path.join(path, filename)
     chfileInfo = get_chfile_properties(chfilePath)
 
     recfileName = "_".join(filename.split("_")[0:-1]) + ".brw"
-    recfilePath = os.path.join(drive_letter + ":\\" + path, recfileName)
+    recfilePath = os.path.join(path, recfileName)
 
     parameters = get_recFile_properties(recfilePath, chfileInfo["Ver"].lower())
 
