@@ -497,7 +497,6 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         central_widget.setLayout(self.main_layout)
         self.setCentralWidget(central_widget)
-        self.resize(1567, 832)
 
         self.menuBar = QMenuBar(self)
         self.menuBar.setNativeMenuBar(False)
@@ -559,8 +558,6 @@ class MainWindow(QMainWindow):
         self.third_tab_layout.addWidget(self.todo_label)
 
         self.tab_widget.addTab(self.third_tab_widget, "Temp Analysis")
-        self.heatmap_widget = HeatmapWidget(64, 64)
-        self.third_tab_layout.addWidget(self.heatmap_widget)
 
         self.second_plot_widget = pg.PlotWidget()
         self.second_plot_widget.setAspectLocked(True)
@@ -679,6 +676,7 @@ class MainWindow(QMainWindow):
         self.speed_combo.currentIndexChanged.connect(self.setPlaybackSpeed)
 
         self.set_widgets_enabled()
+        self.resize(1200, 800)
 
         # Start MATLAB engine
         self.eng = matlab.engine.start_matlab()
