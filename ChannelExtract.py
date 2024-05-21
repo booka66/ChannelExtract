@@ -116,7 +116,8 @@ class ChannelExtract(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Channel Selection Toolbox")
-        self.setGeometry(100, 100, 1600, 900)
+        # Make it so that it is the biggest size possible
+        self.showMaximized()
         # Create main widget and layout
         self.centralWidget = QWidget(self)
         self.setCentralWidget(self.centralWidget)
@@ -361,19 +362,20 @@ class ChannelExtract(QMainWindow):
 
     def updateChannelCount(self):
         selectedPoints = self.inputGridWidget.selected_points
-        row_step = self.rowSkipSpinBox.value()
-        col_step = self.colSkipSpinBox.value()
+        if not selectedPoints:
+            row_step = self.rowSkipSpinBox.value()
+            col_step = self.colSkipSpinBox.value()
 
-        if selectedPoints is None:
-            channel_count = 0
-        else:
-            channel_count = sum(
-                1
-                for x, y in selectedPoints
-                if y % (row_step + 1) == 0 and x % (col_step + 1) == 0
-            )
+            if selectedPoints is None:
+                channel_count = 0
+            else:
+                channel_count = sum(
+                    1
+                    for x, y in selectedPoints
+                    if y % (row_step + 1) == 0 and x % (col_step + 1) == 0
+                )
 
-        self.channelCountValue.setText(str(channel_count))
+            self.channelCountValue.setText(str(channel_count))
 
     def uploadFiles(self):
         options = QFileDialog.Options()
