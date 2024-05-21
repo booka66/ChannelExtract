@@ -302,10 +302,7 @@ class ChannelExtract(QMainWindow):
     def openGUI(self):
         commands = [
             "cd ..",
-            "cd ..",
-            "cd Jake-Squared",
-            'cd "Python Implementation"',
-            "py main.py",
+            "py gui.py",
         ]
         run_commands_in_terminal(commands)
 
