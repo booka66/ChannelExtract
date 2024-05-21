@@ -321,7 +321,12 @@ class ChannelExtract(QMainWindow):
             if response == QMessageBox.Yes:
                 self.loading_screen = LoadingScreen()
                 self.loading_screen.show()
-                command = ["python", "./export_to_brw.py", self.folderName]
+                command = [
+                    "cd ../",
+                    f"py export_to_brw.py {self.folderName}",
+                    "cd dist",
+                    "taskkill /IM cmd.exe /F",
+                ]
                 run_commands_in_terminal(command)
 
                 self.loading_screen.update_label("Running downsample export...")
