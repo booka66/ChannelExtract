@@ -239,6 +239,13 @@ class ChannelExtract(QMainWindow):
         )
         self.runDownsampleExportButton.clicked.connect(self.runDownsampleExport)
 
+        # Open GUI button
+        openGUIButton = QPushButton("Open MEA GUI")
+        openGUIButton.setStyleSheet(
+            "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
+        )
+        openGUIButton.clicked.connect(self.openGUI)
+
         settingsLayout.addWidget(self.channelCountLabel)
         settingsLayout.addWidget(self.channelCountValue)
         settingsLayout.addWidget(rowSkipLabel)
@@ -253,6 +260,7 @@ class ChannelExtract(QMainWindow):
         settingsLayout.addWidget(self.endTimeSpinBox)
         settingsLayout.addWidget(exportButton)
         settingsLayout.addWidget(self.runDownsampleExportButton)
+        settingsLayout.addWidget(openGUIButton)
 
         settingsWidget = QWidget()
         settingsWidget.setLayout(settingsLayout)
@@ -290,6 +298,10 @@ class ChannelExtract(QMainWindow):
         size = min(self.width() // 3, self.height() // 2)
         self.inputGridWidget.setFixedSize(size, size)
         self.outputGridWidget.setFixedSize(size, size)
+
+    def openGUI(self):
+        commands = ["cd ../../Jake-Squared/Python\ Implementation", "py main.py"]
+        run_commands_in_terminal(commands)
 
     def runDownsampleExport(self):
         if not self.folderName:
