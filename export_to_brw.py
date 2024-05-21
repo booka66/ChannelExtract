@@ -20,7 +20,6 @@ import scipy.signal
 
 from tqdm import tqdm
 import clr  # pip install pythonnet
-import click
 
 # For the code to run, BrianWave5 software needs to be installed, the path for the *.dll files should be changed below accordingly
 clr.AddReference(
