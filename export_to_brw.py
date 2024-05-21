@@ -1,6 +1,6 @@
 import math
-import sys
 from multiprocessing import Pool
+import sys
 
 import pywt
 
@@ -855,3 +855,8 @@ def run(folder):
         fileCount += 1
 
     return None
+
+
+if __name__ == "__main__":
+    folder = sys.argv[1]
+    run(folder)

@@ -30,7 +30,6 @@ from matplotlib.widgets import LassoSelector
 from matplotlib.path import Path
 import matplotlib.image as mpimg
 import subprocess
-from export_to_brw import run
 
 
 class ScatterPlot(QWidget):
@@ -322,7 +321,8 @@ class ChannelExtract(QMainWindow):
             if response == QMessageBox.Yes:
                 self.loading_screen = LoadingScreen()
                 self.loading_screen.show()
-                run(self.folderName, self.loading_screen)
+                command = ["python", "./export_to_brw.py", self.folderName]
+                run_commands_in_terminal(command)
 
                 self.loading_screen.update_label("Running downsample export...")
                 self.loading_screen.progress_bar.setValue(0)
