@@ -599,9 +599,8 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     output_path = output_file_name + ".brw"
     parameters["freq_ratio"] = parameters["samplingRate"] / chfileInfo["newSampling"]
     fs = chfileInfo["newSampling"]  # desired sampling frequency
-    block_size = 100000
-    chunks = np.arange(block_size, parameters["nRecFrames"], block_size)
-    print("Downsampling File #", output_path)
+    block_size = 1000000
+    print("Downsampling File # ", output_path)
     dset = writeBrw(recfileName, output_path, parameters)
     dset.createNewBrw()
     newChs = np.zeros(len(chs), dtype=[("Row", "<i2"), ("Col", "<i2")])
@@ -611,16 +610,25 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
         idx += 1
     ind = np.lexsort((newChs["Col"], newChs["Row"]))
     newChs = newChs[ind]
-    start = 0
     idx_a = ind_rec.copy()
+    print(idx_a)
+    data = BrwFile.Open(recfileName)
+    info = data.get_MeaExperimentInfo()
+    dur = int(info.get_TimeDuration().get_TotalSeconds())
+    numReading = int(np.floor(dur * info.get_SamplingRate() / block_size))
+    if numReading <= 0:
+        numReading = int(np.floor(dur * info.get_SamplingRate() / (block_size / 10)))
+        block_size = int(block_size / 10)
 
     s = time.time()
     nrecFrame = 0
-    chunk_size = block_size // parameters["numRecElectrodes"]
+    chunk_size = 100  # Number of channels to process in each chunk
+    num_chunks = (len(ind_rec) + chunk_size - 1) // chunk_size
 
-    for cnk in tqdm(chunks, desc="Downsampling & Export Progress"):
-        end = int(cnk * float(parameters["numRecElectrodes"]))
-        chunk_ind_rec = np.tile(idx_a, (chunk_size, 1)).flatten()
+    for chunk in range(num_chunks):
+        start_idx = chunk * chunk_size
+        end_idx = min((chunk + 1) * chunk_size, len(ind_rec))
+        chunk_ind_rec = ind_rec[start_idx:end_idx]
 
         with Pool() as pool:
             args = [
@@ -641,30 +649,22 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
                 tqdm(
                     pool.imap(extract_channel, args),
                     total=len(args),
-                    desc=f"Extracting channels (chunk {cnk // block_size + 1}/{len(chunks)})",
+                    desc=f"Extracting channels (chunk {chunk + 1}/{num_chunks})",
                 )
             )
 
         raw_chunk = []
         for downsampled_channel_data in results:
+            nrecFrame = len(downsampled_channel_data)
             raw_chunk.append(downsampled_channel_data[:])
 
         raw_chunk = np.array(raw_chunk)
-        resamp_frame = raw_chunk.shape[1]
-        nrecFrame += resamp_frame
-        res = raw_chunk.T
-
-        if cnk <= block_size:
-            dset.writeRaw(res[ind, :], typeFlatten="F")
-            dset.writeSamplingFreq(fs)
-            dset.witeFrames(nrecFrame)
-            dset.writeChs(newChs)
-            dset.close()
-        else:
-            dset.appendBrw(output_path, nrecFrame, res[ind, :])
-
-        start = end
-        idx_a = idx_a + parameters["numRecElectrodes"]
+        dset.appendBrw(
+            output_path,
+            nrecFrame,
+            raw_chunk[ind[start_idx:end_idx], :],
+            typeFlatten="F",
+        )
 
     original_sampling_rate = parameters["samplingRate"]
     desired_sampling_rate = chfileInfo["newSampling"]
@@ -673,7 +673,10 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     print(f"Mine: {new_sampling_rate}")
     print(f"Original: {fs}")
 
+    dset.writeSamplingFreq(new_sampling_rate)
+    dset.writeChs(newChs)
     dset.close()
+    data.Close()
 
     return time.time() - s, output_path
 
