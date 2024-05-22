@@ -677,14 +677,17 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     print(f"Mine: {new_sampling_rate}")
     print(f"Original: {fs}")
 
+    num_channels = len(results)
+    chunk_size = (
+        1000000 // num_channels * num_channels
+    )  # Adjust the chunk size to be a multiple of num_channels
+
     with open(temp_file.name, "rb") as f:
-        chunk_size = 1000000  # Adjust the chunk size as needed
         while True:
             chunk = f.read(chunk_size * channel_data_array.itemsize)
             if not chunk:
                 break
             data = np.frombuffer(chunk, dtype=channel_data_array.dtype)
-            num_channels = len(results)
             data = data.reshape(-1, num_channels)
             dset.writeRaw(data, typeFlatten="F")
 
