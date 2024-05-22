@@ -179,6 +179,15 @@ class ScatterPlot(QWidget):
             self.lasso_line.set_visible(False)
             self.canvas.draw()
 
+    def showHotkeysHelp(self):
+        hotkeys = [
+            "There is no shift+click to do multiple selections. Just keep drawing and use the hotkeys to clear, undo, or redo.",
+            "c: Clear",
+            "z: Undo",
+            "shift+z: Redo",
+        ]
+        QMessageBox.information(self, "Plot Hotkeys", "\n".join(hotkeys))
+
 
 class ChannelExtract(QMainWindow):
     def __init__(self):
@@ -341,6 +350,10 @@ class ChannelExtract(QMainWindow):
     def createStatusBar(self):
         self.statusBar().setFont(QFont("Arial", 10))
         self.statusBar().showMessage("Ready")
+        helpButton = QPushButton("Help")
+        helpButton.setFixedSize(30, 30)
+        helpButton.clicked.connect(self.inputGridWidget.showHotkeysHelp)
+        self.statusBar().addPermanentWidget(helpButton)
 
     def createSplitter(self):
         splitter = QSplitter(Qt.Vertical)
@@ -972,6 +985,35 @@ def make_silly_message():
     return output
 
 
+def show_commit_summary(local_path):
+    try:
+        commit_summary = (
+            subprocess.check_output(
+                ["git", "-C", local_path, "log", "-1", "--pretty=%s"]
+            )
+            .decode("utf-8")
+            .strip()
+        )
+        commit_description = (
+            subprocess.check_output(
+                ["git", "-C", local_path, "log", "-1", "--pretty=%b"]
+            )
+            .decode("utf-8")
+            .strip()
+        )
+
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setText(
+            f"Commit Summary:\n{commit_summary}\n\nCommit Description:\n{commit_description}"
+        )
+        msg.setWindowTitle("Commit Details")
+        msg.setStandardButtons(QMessageBox.Close)
+        msg.exec_()
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while retrieving commit details: {str(e)}")
+
+
 def check_for_updates():
     repo_url = "https://github.com/booka66/ChannelExtract.git"
     home_dir = os.path.expanduser("~")
@@ -1032,6 +1074,7 @@ def check_for_updates():
                 commands = initial_commands + silly_message_commands + kill_commands
 
                 run_commands_in_terminal(commands)
+                show_commit_summary(local_path)
                 sys.exit()
 
     except subprocess.CalledProcessError as e:
