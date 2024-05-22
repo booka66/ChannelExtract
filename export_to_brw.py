@@ -659,12 +659,7 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
             raw_chunk.append(downsampled_channel_data[:])
 
         raw_chunk = np.array(raw_chunk)
-        dset.appendBrw(
-            output_path,
-            nrecFrame,
-            raw_chunk[ind[start_idx:end_idx], :],
-            typeFlatten="F",
-        )
+        dset.writeRaw(raw_chunk[ind[start_idx:end_idx], :], typeFlatten="F")
 
     original_sampling_rate = parameters["samplingRate"]
     desired_sampling_rate = chfileInfo["newSampling"]
@@ -674,6 +669,7 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     print(f"Original: {fs}")
 
     dset.writeSamplingFreq(new_sampling_rate)
+    dset.witeFrames(nrecFrame)
     dset.writeChs(newChs)
     dset.close()
     data.Close()
