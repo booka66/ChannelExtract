@@ -866,6 +866,11 @@ if __name__ == "__main__":
             folder += arg + " "
     folder = folder.strip()
     os.path.normpath(folder)
-    print(drive_letter)
-    print(folder)
+    print(
+        "Exporting the channel bois from the folder: ",
+        folder,
+        " in drive: ",
+        drive_letter,
+        "\n",
+    )
     run(drive_letter, folder)
