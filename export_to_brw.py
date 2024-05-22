@@ -17,7 +17,6 @@ import os
 import time
 import scipy
 import scipy.signal
-import tempfile
 
 from tqdm import tqdm
 import clr  # pip install pythonnet
@@ -661,14 +660,9 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
             )
         )
 
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
-    nrecFrame = None
     for downsampled_channel_data in results:
-        if nrecFrame is None:
-            nrecFrame = len(downsampled_channel_data)
-        channel_data_array = np.array(downsampled_channel_data)
-        temp_file.write(channel_data_array.tobytes())
-    temp_file.close()
+        nrecFrame = len(downsampled_channel_data)
+        raw.append(downsampled_channel_data[:])
 
     original_sampling_rate = parameters["samplingRate"]
     desired_sampling_rate = chfileInfo["newSampling"]
@@ -677,22 +671,8 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     print(f"Mine: {new_sampling_rate}")
     print(f"Original: {fs}")
 
-    num_channels = len(results)
-    chunk_size = (
-        1000000 // num_channels * num_channels
-    )  # Adjust the chunk size to be a multiple of num_channels
-
-    with open(temp_file.name, "rb") as f:
-        while True:
-            chunk = f.read(chunk_size * channel_data_array.itemsize)
-            if not chunk:
-                break
-            data = np.frombuffer(chunk, dtype=channel_data_array.dtype)
-            data = data.reshape(-1, num_channels)
-            dset.writeRaw(data, typeFlatten="F")
-
-    os.unlink(temp_file.name)
-
+    raw = np.array(raw)
+    dset.writeRaw(raw[ind, :], typeFlatten="F")
     dset.writeSamplingFreq(new_sampling_rate)
     dset.witeFrames(nrecFrame)
     dset.writeChs(newChs)
