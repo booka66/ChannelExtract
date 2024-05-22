@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
     QMessageBox,
-    QProgressBar,
     QSplitter,
     QWidget,
     QVBoxLayout,
@@ -21,15 +20,12 @@ from PyQt5.QtWidgets import (
     QDoubleSpinBox,
     QFileDialog,
     QHeaderView,
-    QComboBox,
-    QCheckBox,
     QSizePolicy,
     QGroupBox,
     QGridLayout,
-    QScrollArea,
 )
-from PyQt5.QtGui import QColor, QIcon, QFont
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtCore import Qt
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -145,7 +141,6 @@ class ChannelExtract(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Channel Selection Toolbox")
-        self.setWindowIcon(QIcon("icon.png"))
         self.resize(1200, 800)
 
         # Create main widget and layout
@@ -174,12 +169,6 @@ class ChannelExtract(QMainWindow):
 
     def createHeader(self):
         headerLayout = QHBoxLayout()
-
-        # Add application icon
-        icon = QLabel()
-        icon.setPixmap(QIcon("icon.png").pixmap(QSize(32, 32)))
-        headerLayout.addWidget(icon)
-
         # Add application title
         self.headerLabel = QLabel("Channel Selection Toolbox")
         self.headerLabel.setFont(QFont("Arial", 16, QFont.Bold))
@@ -239,7 +228,7 @@ class ChannelExtract(QMainWindow):
         settingsLayout = QVBoxLayout()
         settingsWidget.setLayout(settingsLayout)
 
-        uploadButton = QPushButton(QIcon("upload.png"), "Upload .brw Files")
+        uploadButton = QPushButton("Upload .brw Files")
         uploadButton.clicked.connect(self.uploadFiles)
         settingsLayout.addWidget(uploadButton)
 
@@ -281,17 +270,15 @@ class ChannelExtract(QMainWindow):
 
         settingsLayout.addStretch()
 
-        exportButton = QPushButton(QIcon("export.png"), "Export Channels")
+        exportButton = QPushButton("Export Channels")
         exportButton.clicked.connect(self.exportChannels)
         settingsLayout.addWidget(exportButton)
 
-        downsampleExportButton = QPushButton(
-            QIcon("downsample.png"), "Downsample Export"
-        )
+        downsampleExportButton = QPushButton("Downsample Export")
         downsampleExportButton.clicked.connect(self.runDownsampleExport)
         settingsLayout.addWidget(downsampleExportButton)
 
-        openGUIButton = QPushButton(QIcon("open.png"), "Open in MEA GUI")
+        openGUIButton = QPushButton("Open in MEA GUI")
         openGUIButton.clicked.connect(self.openGUI)
         settingsLayout.addWidget(openGUIButton)
 
@@ -413,7 +400,7 @@ class ChannelExtract(QMainWindow):
                         round(parameters["nRecFrames"] / parameters["samplingRate"]),
                         parameters["samplingRate"],
                         "Not Started",
-                        QPushButton(QIcon("select.png"), "Select"),
+                        QPushButton("Select"),
                     ]
                 )
 
@@ -471,7 +458,6 @@ class ChannelExtract(QMainWindow):
             self.get_type(h5)
             parameters = self.parameter(h5)
             chsList = parameters["recElectrodeList"]
-            Frames = parameters["nRecFrames"]
             endTime = parameters["recordingLength"]
 
             Xs, Ys, idx = self.getChMap(chsList)
@@ -627,7 +613,6 @@ class ChannelExtract(QMainWindow):
                 status_item.setBackground(QColor("#d4edda"))
 
                 select_button = self.dataTable.cellWidget(selected_row, 9)
-                select_button.setIcon(QIcon("redo.png"))
                 select_button.setText("Redo")
                 select_button.setEnabled(True)
 
@@ -715,7 +700,7 @@ class ChannelExtract(QMainWindow):
                     :
                 ]  # list of the recorded channels
                 parameters["Typ"] = "RAW"
-            except:
+            except Exception:
                 parameters["recElectrodeList"] = h5[
                     "/3BRecInfo/3BMeaStreams/WaveletCoefficients/Chs"
                 ][:]
@@ -885,7 +870,7 @@ class writeCBrw:
         del brwAppend["/3BRecInfo/3BRecVars/NewSampling"]
         try:
             del brwAppend["/3BRecInfo/3BMeaStreams/Raw/Chs"]
-        except:
+        except Exception:
             del brwAppend["/3BRecInfo/3BMeaStreams/WaveletCoefficients/Chs"]
         del brwAppend["/3BRecInfo/3BRecVars/NRecFrames"]
         del brwAppend["/3BRecInfo/3BRecVars/SamplingRate"]
