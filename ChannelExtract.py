@@ -42,6 +42,9 @@ class ScatterPlot(QWidget):
         self.parent = parent
         self.selected_points = []
         self.uploadedImage = uploadedImage
+        self.undo_stack = []
+        self.redo_stack = []
+        self.setFocusPolicy(Qt.StrongFocus)
 
     def initUI(self):
         layout = QVBoxLayout()
@@ -78,7 +81,6 @@ class ScatterPlot(QWidget):
 
     def lasso_callback(self, verts):
         path = Path(verts)
-
         if self.uploadedImage is not None:
             height, width, _ = self.uploadedImage.shape
             new_selected_points = [
@@ -91,19 +93,27 @@ class ScatterPlot(QWidget):
                 (x, y) for x, y in zip(self.x, self.y) if path.contains_point((x, y))
             ]
 
-        modifiers = QApplication.keyboardModifiers()
-        if modifiers == Qt.ShiftModifier:
-            if hasattr(self, "selected_points"):
-                self.selected_points.extend(new_selected_points)
-            else:
-                self.selected_points = new_selected_points
-        else:
-            self.selected_points = new_selected_points
+        self.undo_stack.append(self.selected_points.copy())
+        self.redo_stack.clear()
+        self.selected_points.extend(new_selected_points)
 
+        self.update_selected_points_plot()
+
+        verts = np.append(verts, [verts[0]], axis=0)
+        if hasattr(self, "lasso_line"):
+            self.lasso_line.remove()
+        self.lasso_line = self.ax.plot(
+            verts[:, 0], verts[:, 1], "b-", linewidth=1, alpha=0.8
+        )[0]
+
+        self.canvas.draw()
+        self.parent.updateChannelCount()
+
+    def update_selected_points_plot(self):
         if hasattr(self, "selected_points_plot"):
             self.selected_points_plot.remove()
-
         if self.uploadedImage is not None:
+            height, width, _ = self.uploadedImage.shape
             self.selected_points_plot = self.ax.scatter(
                 [point[0] * width / 64 for point in self.selected_points],
                 [point[1] * height / 64 for point in self.selected_points],
@@ -120,16 +130,49 @@ class ScatterPlot(QWidget):
                 alpha=0.8,
             )
 
-        verts = np.append(verts, [verts[0]], axis=0)
-        if hasattr(self, "lasso_line"):
-            self.lasso_line.remove()
-        self.lasso_line = self.ax.plot(
-            verts[:, 0], verts[:, 1], "b-", linewidth=1, alpha=0.8
-        )[0]
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_C:
+            self.clear_selection()
+        elif event.key() == Qt.Key_Z:
+            if event.modifiers() & Qt.ShiftModifier:
+                self.redo_selection()
+            else:
+                self.undo_selection()
 
+    def clear_selection(self):
+        if self.lasso.active:
+            self.lasso_line.set_visible(False)
+            self.canvas.draw()
+        self.undo_stack.append(self.selected_points.copy())
+        self.redo_stack.clear()
+        self.selected_points.clear()
+        self.update_selected_points_plot()
         self.canvas.draw()
-
         self.parent.updateChannelCount()
+
+    def undo_selection(self):
+        if self.undo_stack:
+            if self.lasso.active:
+                self.lasso_line.set_visible(False)
+                self.canvas.draw()
+
+            self.redo_stack.append(self.selected_points.copy())
+            self.selected_points = self.undo_stack.pop()
+            self.update_selected_points_plot()
+            self.canvas.draw()
+            self.parent.updateChannelCount()
+
+    def redo_selection(self):
+        if self.redo_stack:
+            if self.lasso.active:
+                self.lasso_line.set_visible(False)
+                self.canvas.draw()
+
+            self.undo_stack.append(self.selected_points.copy())
+            self.selected_points = self.redo_stack.pop()
+            self.update_selected_points_plot()
+            self.canvas.draw()
+            self.parent.updateChannelCount()
 
     def onrelease(self, event):
         if self.lasso.active:
@@ -509,7 +552,6 @@ class ChannelExtract(QMainWindow):
 
     def exportChannels(self):
         selectedPoints = self.inputGridWidget.selected_points
-        print("Selected points:", selectedPoints)
         if selectedPoints:
             chX = []
             chY = []
@@ -521,8 +563,6 @@ class ChannelExtract(QMainWindow):
                 ):
                     chX.append(x)
                     chY.append(y)
-            print("chX:", chX)
-            print("chY:", chY)
 
             h5 = h5py.File(self.inputFileName, "r")
             parameters = self.parameter(h5)
@@ -561,11 +601,6 @@ class ChannelExtract(QMainWindow):
 
             # Plot the gray dots
             self.outputGridWidget.ax.scatter(xs, ys, c="grey", s=5, alpha=0.1)
-
-            # Print the red dot coordinates
-            print("Red dot coordinates:")
-            for x, y in zip(chX, chY):
-                print(f"({x}, {y})")
 
             # Plot the red dots on top with a higher zorder
             self.outputGridWidget.ax.scatter(
