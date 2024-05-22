@@ -864,7 +864,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         for arg in sys.argv[2:]:
             folder += arg + " "
-
+    folder = folder.strip()
     os.path.normpath(folder)
     print(drive_letter)
     print(folder)
