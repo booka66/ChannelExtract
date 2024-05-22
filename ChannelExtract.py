@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QProgressBar,
+    QSplitter,
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
@@ -20,9 +21,15 @@ from PyQt5.QtWidgets import (
     QDoubleSpinBox,
     QFileDialog,
     QHeaderView,
+    QComboBox,
+    QCheckBox,
+    QSizePolicy,
+    QGroupBox,
+    QGridLayout,
+    QScrollArea,
 )
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QIcon, QFont
+from PyQt5.QtCore import Qt, QSize
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -43,7 +50,7 @@ class ScatterPlot(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        fig = Figure()
+        fig = Figure(figsize=(5, 5), dpi=100)
         self.canvas = FigureCanvas(fig)
         layout.addWidget(self.canvas)
 
@@ -55,7 +62,7 @@ class ScatterPlot(QWidget):
         self.x = self.x.flatten()
         self.y = self.y.flatten()
 
-        self.ax.scatter(self.x, self.y, c="k", s=5)
+        self.ax.scatter(self.x, self.y, c="k", s=10, alpha=0.5)
 
         self.lasso = LassoSelector(
             self.ax,
@@ -92,7 +99,8 @@ class ScatterPlot(QWidget):
             [point[0] for point in self.selected_points],
             [point[1] for point in self.selected_points],
             c="red",
-            s=5,
+            s=10,
+            alpha=0.8,
         )
 
         verts = np.append(verts, [verts[0]], axis=0)
@@ -100,12 +108,12 @@ class ScatterPlot(QWidget):
             self.lasso_line.remove()
 
         self.lasso_line = self.ax.plot(
-            verts[:, 0], verts[:, 1], "b-", linewidth=2, alpha=1
+            verts[:, 0], verts[:, 1], "b-", linewidth=1, alpha=0.8
         )[0]
 
         self.canvas.draw()
 
-        self.parent.channelCountValue.setText(str(len(self.selected_points)))
+        self.parent.updateChannelCount()
 
     def onrelease(self, event):
         if self.lasso.active:
@@ -117,170 +125,19 @@ class ChannelExtract(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Channel Selection Toolbox")
+        self.setWindowIcon(QIcon("icon.png"))
+        self.resize(1200, 800)
+
         # Create main widget and layout
         self.centralWidget = QWidget(self)
         self.setCentralWidget(self.centralWidget)
         self.mainLayout = QVBoxLayout()
         self.centralWidget.setLayout(self.mainLayout)
 
-        # Create header
-        self.headerLabel = QLabel("Channel Selection Toolbox")
-        self.headerLabel.setAlignment(Qt.AlignCenter)
-        self.headerLabel.setStyleSheet(
-            "background-color: #ADD8E6; color: #000080; font-size: 20px; padding: 10px;"
-        )
-        self.mainLayout.addWidget(self.headerLabel)
-
-        # Create input file path layout
-        inputLayout = QHBoxLayout()
-        uploadButton = QPushButton("Upload .brw Files")
-        uploadButton.setStyleSheet(
-            "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
-        )
-        uploadButton.clicked.connect(self.uploadFiles)
-        inputLayout.addWidget(uploadButton)
-        self.mainLayout.addLayout(inputLayout)
-
-        # Create data table
-        self.dataTable = QTableWidget()
-        self.dataTable.setColumnCount(10)
-        self.dataTable.setHorizontalHeaderLabels(
-            [
-                "File Path",
-                "File Name",
-                "Version",
-                "Data Format",
-                "Active Channels",
-                "Data per Channel",
-                "Recording Time (Seconds)",
-                "Sampling (Hz)",
-                "Status",
-                "Select",
-            ]
-        )
-        self.dataTable.horizontalHeader().setStyleSheet("font-size: 16px;")
-        self.dataTable.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeToContents
-        )
-        self.mainLayout.addWidget(self.dataTable)
-
-        # Create file name label
-        self.fileNameLabel = QLabel("Analysis File: ")
-        self.fileNameLabel.setAlignment(Qt.AlignCenter)
-        self.fileNameLabel.setStyleSheet(
-            "background-color: #87CEEB; color: #000080; font-size: 16px; padding: 5px;"
-        )
-        self.mainLayout.addWidget(self.fileNameLabel)
-
-        # Create separator
-        self.mainLayout.addSpacing(10)
-
-        # Create channel selection layout
-        channelLayout = QHBoxLayout()
-
-        # Create input grid
-        self.inputGridLabel = QLabel("Select Channels for Export")
-        self.inputGridLabel.setAlignment(Qt.AlignCenter)
-        self.inputGridLabel.setStyleSheet("font-size: 18px;")
-        self.inputGridWidget = ScatterPlot(self)
-        self.inputGridWidget.setMinimumSize(
-            800, 800
-        )  # Set minimum size for the input grid
-
-        inputGridLayout = QVBoxLayout()
-        inputGridLayout.addWidget(self.inputGridLabel)
-        inputGridLayout.addWidget(self.inputGridWidget)
-        channelLayout.addLayout(inputGridLayout, stretch=3)
-
-        # Create channel count and settings layout
-        settingsLayout = QVBoxLayout()
-
-        self.channelCountLabel = QLabel("Channel Count")
-        self.channelCountLabel.setAlignment(Qt.AlignCenter)
-        self.channelCountLabel.setStyleSheet("font-size: 16px;")
-        self.channelCountValue = QLabel("0")
-        self.channelCountValue.setAlignment(Qt.AlignCenter)
-        self.channelCountValue.setStyleSheet("font-size: 20px; font-weight: bold;")
-
-        rowSkipLabel = QLabel("# Rows to Skip:")
-        self.rowSkipSpinBox = QSpinBox()
-        self.rowSkipSpinBox.setRange(0, 3)
-        self.rowSkipSpinBox.setValue(0)
-        self.rowSkipSpinBox.valueChanged.connect(self.updateChannelCount)
-
-        colSkipLabel = QLabel("# Columns to Skip:")
-        self.colSkipSpinBox = QSpinBox()
-        self.colSkipSpinBox.setRange(0, 3)
-        self.colSkipSpinBox.setValue(0)
-        self.colSkipSpinBox.valueChanged.connect(self.updateChannelCount)
-
-        downsampleLabel = QLabel("Downsampling (Hz):")
-        self.downsampleSpinBox = QDoubleSpinBox()
-        self.downsampleSpinBox.setRange(0, 20000)
-        self.downsampleSpinBox.setValue(100)
-
-        startTimeLabel = QLabel("Start Time (s):")
-        self.startTimeSpinBox = QDoubleSpinBox()
-        self.startTimeSpinBox.setRange(0, 50)
-
-        endTimeLabel = QLabel("End Time (s):")
-        self.endTimeSpinBox = QDoubleSpinBox()
-
-        exportButton = QPushButton("Export Channels")
-        exportButton.setStyleSheet(
-            "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
-        )
-        exportButton.clicked.connect(self.exportChannels)
-
-        # Create the "Run Downsample Export" button
-        self.runDownsampleExportButton = QPushButton("Downsample Export")
-        self.runDownsampleExportButton.setStyleSheet(
-            "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
-        )
-        self.runDownsampleExportButton.clicked.connect(self.runDownsampleExport)
-
-        # Open GUI button
-        openGUIButton = QPushButton("Open in MEA GUI")
-        openGUIButton.setStyleSheet(
-            "background-color: #ADD8E6; color: #000080; font-size: 16px; padding: 5px;"
-        )
-        openGUIButton.clicked.connect(self.openGUI)
-
-        settingsLayout.addWidget(self.channelCountLabel)
-        settingsLayout.addWidget(self.channelCountValue)
-        settingsLayout.addWidget(rowSkipLabel)
-        settingsLayout.addWidget(self.rowSkipSpinBox)
-        settingsLayout.addWidget(colSkipLabel)
-        settingsLayout.addWidget(self.colSkipSpinBox)
-        settingsLayout.addWidget(downsampleLabel)
-        settingsLayout.addWidget(self.downsampleSpinBox)
-        settingsLayout.addWidget(startTimeLabel)
-        settingsLayout.addWidget(self.startTimeSpinBox)
-        settingsLayout.addWidget(endTimeLabel)
-        settingsLayout.addWidget(self.endTimeSpinBox)
-        settingsLayout.addWidget(exportButton)
-        settingsLayout.addWidget(self.runDownsampleExportButton)
-        settingsLayout.addWidget(openGUIButton)
-
-        settingsWidget = QWidget()
-        settingsWidget.setLayout(settingsLayout)
-        settingsWidget.setFixedWidth(200)  # Adjust the width as needed
-
-        channelLayout.addWidget(settingsWidget, alignment=Qt.AlignCenter)
-
-        # Create output grid
-        self.outputGridLabel = QLabel("Channels Exported")
-        self.outputGridLabel.setAlignment(Qt.AlignCenter)
-        self.outputGridLabel.setStyleSheet("font-size: 18px;")
-        self.outputGridWidget = ScatterPlot()
-        self.outputGridWidget.setMinimumSize(800, 800)
-
-        outputGridLayout = QVBoxLayout()
-        outputGridLayout.addWidget(self.outputGridLabel)
-        outputGridLayout.addWidget(self.outputGridWidget)
-        channelLayout.addLayout(outputGridLayout)
-
-        self.mainLayout.addLayout(channelLayout)
+        self.createHeader()
+        self.createDataTable()
+        self.createChannelSelectionSection()
+        self.createStatusBar()
 
         # Initialize variables
         self.inputFileName = ""
@@ -294,91 +151,149 @@ class ChannelExtract(QMainWindow):
 
         self.showMaximized()
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        size = min(self.width() // 3, self.height() // 2)
-        self.inputGridWidget.setFixedSize(size, size)
-        self.outputGridWidget.setFixedSize(size, size)
+    def createHeader(self):
+        headerLayout = QHBoxLayout()
 
-    def openGUI(self):
-        commands = [
-            "cd ../../Jake-Squared/Python-GUI",
-            "py main.py",
-        ]
-        run_commands_in_terminal(commands)
+        # Add application icon
+        icon = QLabel()
+        icon.setPixmap(QIcon("icon.png").pixmap(QSize(32, 32)))
+        headerLayout.addWidget(icon)
 
-    def runDownsampleExport(self):
-        if not self.folderName:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Information)
-            msg.setText("Please upload folder first.")
-            msg.setWindowTitle("No Folder Uploaded")
-            msg.exec_()
-            return
-        green_rows = []
-        for row in range(self.dataTable.rowCount()):
-            status_item = self.dataTable.item(row, self.dataTable.columnCount() - 2)
-            if status_item.background() == QColor("green"):
-                green_rows.append(row)
+        # Add application title
+        self.headerLabel = QLabel("Channel Selection Toolbox")
+        self.headerLabel.setFont(QFont("Arial", 16, QFont.Bold))
+        self.headerLabel.setAlignment(Qt.AlignCenter)
+        headerLayout.addWidget(self.headerLabel)
 
-        if green_rows:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Question)
-            msg.setText(
-                f"Do you want to run the downsample export on {len(green_rows)} exported files?"
-            )
-            msg.setWindowTitle("Run Downsample Export")
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            msg.setDefaultButton(QMessageBox.No)
-            response = msg.exec_()
-            if response == QMessageBox.Yes:
-                self.loading_screen = LoadingScreen()
-                self.loading_screen.show()
-                driveLetter = os.path.splitdrive(self.folderName)[0]
-                print(driveLetter)
-                command = [
-                    "cd ../",
-                    f"py export_to_brw.py {self.folderName} {driveLetter}",
-                    "cd dist",
-                    "echo 'Done :D Closing in 5 seconds...'",
-                    "timeout /t 5 /nobreak",
-                    "taskkill /IM cmd.exe /F",
-                ]
-                run_commands_in_terminal(command)
+        # Add spacer to push title to the center
+        headerLayout.addStretch()
 
-                self.loading_screen.update_label("Running downsample export...")
-                self.loading_screen.progress_bar.setValue(0)
+        self.mainLayout.addLayout(headerLayout)
 
-                self.loading_screen.update_label("Downsample export complete.")
-                self.loading_screen.progress_bar.setValue(100)
-                self.loading_screen.close()
-        else:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Information)
-            msg.setText("No files have been exported.")
-            msg.setWindowTitle("No Files Exported")
-            msg.exec_()
-            return
+    def createDataTable(self):
+        self.dataTable = QTableWidget()
+        self.dataTable.setColumnCount(10)
+        self.dataTable.setHorizontalHeaderLabels(
+            [
+                "File Path",
+                "File Name",
+                "Version",
+                "Data Format",
+                "Active Channels",
+                "Data per Channel",
+                "Recording Time (s)",
+                "Sampling (Hz)",
+                "Status",
+                "Select",
+            ]
+        )
+        self.dataTable.horizontalHeader().setFont(QFont("Arial", 10))
+        self.dataTable.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeToContents
+        )
+        self.mainLayout.addWidget(self.dataTable)
+
+    def createChannelSelectionSection(self):
+        groupBox = QGroupBox("Channel Selection")
+        groupBox.setFont(QFont("Arial", 12))
+
+        splitter = QSplitter(Qt.Horizontal)
+
+        # Create input grid
+        self.inputGridWidget = ScatterPlot(self)
+        self.inputGridWidget.setMinimumSize(500, 500)
+        splitter.addWidget(self.inputGridWidget)
+
+        # Create channel settings section
+        settingsWidget = QWidget()
+        settingsLayout = QVBoxLayout()
+        settingsWidget.setLayout(settingsLayout)
+
+        uploadButton = QPushButton(QIcon("upload.png"), "Upload .brw Files")
+        uploadButton.clicked.connect(self.uploadFiles)
+        settingsLayout.addWidget(uploadButton)
+
+        self.channelCountLabel = QLabel("Channel Count: 0")
+        self.channelCountLabel.setFont(QFont("Arial", 10))
+        settingsLayout.addWidget(self.channelCountLabel)
+
+        rowSkipLabel = QLabel("# Rows to Skip:")
+        self.rowSkipSpinBox = QSpinBox()
+        self.rowSkipSpinBox.setRange(0, 3)
+        self.rowSkipSpinBox.valueChanged.connect(self.updateChannelCount)
+        settingsLayout.addWidget(rowSkipLabel)
+        settingsLayout.addWidget(self.rowSkipSpinBox)
+
+        colSkipLabel = QLabel("# Columns to Skip:")
+        self.colSkipSpinBox = QSpinBox()
+        self.colSkipSpinBox.setRange(0, 3)
+        self.colSkipSpinBox.valueChanged.connect(self.updateChannelCount)
+        settingsLayout.addWidget(colSkipLabel)
+        settingsLayout.addWidget(self.colSkipSpinBox)
+
+        downsampleLabel = QLabel("Downsampling (Hz):")
+        self.downsampleSpinBox = QDoubleSpinBox()
+        self.downsampleSpinBox.setRange(0, 20000)
+        self.downsampleSpinBox.setValue(100)
+        settingsLayout.addWidget(downsampleLabel)
+        settingsLayout.addWidget(self.downsampleSpinBox)
+
+        startTimeLabel = QLabel("Start Time (s):")
+        self.startTimeSpinBox = QDoubleSpinBox()
+        self.startTimeSpinBox.setRange(0, 50)
+        settingsLayout.addWidget(startTimeLabel)
+        settingsLayout.addWidget(self.startTimeSpinBox)
+
+        endTimeLabel = QLabel("End Time (s):")
+        self.endTimeSpinBox = QDoubleSpinBox()
+        settingsLayout.addWidget(endTimeLabel)
+        settingsLayout.addWidget(self.endTimeSpinBox)
+
+        settingsLayout.addStretch()
+
+        exportButton = QPushButton(QIcon("export.png"), "Export Channels")
+        exportButton.clicked.connect(self.exportChannels)
+        settingsLayout.addWidget(exportButton)
+
+        downsampleExportButton = QPushButton(
+            QIcon("downsample.png"), "Downsample Export"
+        )
+        downsampleExportButton.clicked.connect(self.runDownsampleExport)
+        settingsLayout.addWidget(downsampleExportButton)
+
+        openGUIButton = QPushButton(QIcon("open.png"), "Open in MEA GUI")
+        openGUIButton.clicked.connect(self.openGUI)
+        settingsLayout.addWidget(openGUIButton)
+
+        splitter.addWidget(settingsWidget)
+
+        # Create output grid
+        self.outputGridWidget = ScatterPlot()
+        self.outputGridWidget.setMinimumSize(500, 500)
+        splitter.addWidget(self.outputGridWidget)
+
+        layout = QVBoxLayout()
+        layout.addWidget(splitter)
+        groupBox.setLayout(layout)
+        self.mainLayout.addWidget(groupBox)
+
+    def createStatusBar(self):
+        self.statusBar().setFont(QFont("Arial", 10))
+        self.statusBar().showMessage("Ready")
 
     def updateChannelCount(self):
-        try:
-            selectedPoints = self.inputGridWidget.selected_points
-        except Exception as e:
-            print(f"Error updating channel count: {str(e)}")
+        selectedPoints = self.inputGridWidget.selected_points
         if selectedPoints:
             row_step = self.rowSkipSpinBox.value()
             col_step = self.colSkipSpinBox.value()
 
-            if selectedPoints is None:
-                channel_count = 0
-            else:
-                channel_count = sum(
-                    1
-                    for x, y in selectedPoints
-                    if y % (row_step + 1) == 0 and x % (col_step + 1) == 0
-                )
+            channel_count = sum(
+                1
+                for x, y in selectedPoints
+                if y % (row_step + 1) == 0 and x % (col_step + 1) == 0
+            )
 
-            self.channelCountValue.setText(str(channel_count))
+            self.channelCountLabel.setText(f"Channel Count: {channel_count}")
 
     def uploadFiles(self):
         options = QFileDialog.Options()
@@ -388,9 +303,8 @@ class ChannelExtract(QMainWindow):
 
         if self.folderName:
             tableData = []
-            self.imageDict = {}  # Create a dictionary to store images
+            self.imageDict = {}
 
-            # Get all .brw files in the selected folder
             brwFiles = [f for f in os.listdir(self.folderName) if f.endswith(".brw")]
 
             for brwFile in brwFiles:
@@ -409,23 +323,19 @@ class ChannelExtract(QMainWindow):
                 chsList = parameters["recElectrodeList"]
                 filePath = self.folderName
                 baseName = os.path.basename(fileName)
-                brwFileName = os.path.basename(fileName)
-                dateSlice = "_".join(brwFileName.split("_")[:4])
+                dateSlice = "_".join(baseName.split("_")[:4])
                 dateSliceNumber = (
                     dateSlice.split("slice")[0]
                     + "slice"
                     + dateSlice.split("slice")[1][:1]
                 )
-                imageName = (
-                    f"{dateSliceNumber}_pic_cropped.jpg".lower()
-                )  # Convert to lowercase
+                imageName = f"{dateSliceNumber}_pic_cropped.jpg".lower()
                 imageFolder = self.folderName
                 imagePath = os.path.join(imageFolder, imageName)
 
                 if os.path.exists(imagePath):
                     image = mpimg.imread(imagePath)
                 else:
-                    # Search for the image file in a case-insensitive manner
                     imageFiles = [
                         f for f in os.listdir(imageFolder) if f.lower() == imageName
                     ]
@@ -452,9 +362,7 @@ class ChannelExtract(QMainWindow):
                         else:
                             image = None
 
-                self.imageDict[fileName] = (
-                    image  # Store the image in the dictionary using the file name as the key
-                )
+                self.imageDict[fileName] = image
 
                 tableData.append(
                     [
@@ -467,7 +375,7 @@ class ChannelExtract(QMainWindow):
                         round(parameters["nRecFrames"] / parameters["samplingRate"]),
                         parameters["samplingRate"],
                         "Not Started",
-                        QPushButton("Select"),
+                        QPushButton(QIcon("select.png"), "Select"),
                     ]
                 )
 
@@ -475,16 +383,51 @@ class ChannelExtract(QMainWindow):
 
             self.populateTable(tableData)
 
-    def get_type(self, h5):
-        if "ExperimentSettings" in h5.keys():
-            self.typ = "bw5"
-        elif "/3BRecInfo/3BRecVars/NRecFrames" in h5.keys():
-            self.typ = "bw4"
-        else:
-            self.typ = "File Not Recognized"
+    def populateTable(self, data):
+        self.dataTable.setRowCount(len(data))
+        for i, row in enumerate(data):
+            for j, item in enumerate(row):
+                if isinstance(item, QPushButton):
+                    self.dataTable.setCellWidget(i, j, item)
+                    item.clicked.connect(lambda _, r=i: self.selectFile(r))
+                else:
+                    table_item = QTableWidgetItem(str(item))
+                    table_item.setFlags(table_item.flags() & ~Qt.ItemIsEditable)
+                    table_item.setTextAlignment(Qt.AlignCenter)
+                    if j == len(row) - 2:
+                        table_item.setBackground(QColor("#f8d7da"))
+                    self.dataTable.setItem(i, j, table_item)
+
+        self.dataTable.resizeColumnsToContents()
+
+    def selectFile(self, row):
+        fileName = os.path.join(
+            self.dataTable.item(row, 0).text(), self.dataTable.item(row, 1).text()
+        )
+        fileName = os.path.normpath(fileName)
+        self.inputFileName = fileName
+        self.uploadedImage = self.imageDict.get(fileName)
+        self.updateGrid()
+
+        if (
+            self.previously_selected_row is not None
+            and self.previously_selected_row != row
+        ):
+            self.dataTable.cellWidget(
+                self.previously_selected_row, self.dataTable.columnCount() - 1
+            ).setEnabled(True)
+
+        self.dataTable.cellWidget(row, self.dataTable.columnCount() - 1).setEnabled(
+            False
+        )
+
+        self.outputGridWidget.ax.clear()
+        self.outputGridWidget.canvas.draw()
+
+        self.dataTable.selectRow(row)
+        self.previously_selected_row = row
 
     def updateGrid(self):
-        # Update input grid based on uploaded image and selected file
         if self.inputFileName and os.path.exists(self.inputFileName):
             h5 = h5py.File(self.inputFileName, "r")
             self.get_type(h5)
@@ -495,20 +438,19 @@ class ChannelExtract(QMainWindow):
 
             Xs, Ys, idx = self.getChMap(chsList)
 
-            # Update the input grid scatter plot
             self.inputGridWidget.ax.clear()
             if self.uploadedImage is not None:
                 self.inputGridWidget.ax.imshow(
                     self.uploadedImage, extent=self.size, aspect="auto"
                 )
-            self.inputGridWidget.ax.scatter(Xs, Ys, c="k", s=5)
+            self.inputGridWidget.ax.scatter(Xs, Ys, c="k", s=10, alpha=0.5)
 
             self.inputGridWidget.ax.set_xlim(self.size[0], self.size[1])
             self.inputGridWidget.ax.set_ylim(self.size[2], self.size[3])
             self.inputGridWidget.ax.set_xticks([])
             self.inputGridWidget.ax.set_yticks([])
 
-            self.inputGridWidget.ax.invert_yaxis()  # Invert the y-axis
+            self.inputGridWidget.ax.invert_yaxis()
             self.inputGridWidget.canvas.draw()
 
             self.endTimeSpinBox.setRange(0, endTime)
@@ -516,13 +458,13 @@ class ChannelExtract(QMainWindow):
 
             h5.close()
         else:
-            self.fileNameLabel.setText("No .brw file selected")
+            self.statusBar().showMessage("No .brw file selected")
 
-            # Clear the input grid scatter plot
             self.inputGridWidget.ax.clear()
             self.inputGridWidget.canvas.draw()
 
-    def updateOutputGrid(self, selectedPoints):
+    def exportChannels(self):
+        selectedPoints = self.inputGridWidget.selected_points
         if selectedPoints:
             chX = []
             chY = []
@@ -541,79 +483,114 @@ class ChannelExtract(QMainWindow):
             xs, ys, idx = self.getChMap(chsList)
             h5.close()
 
-            # Update the output grid scatter plot
             self.outputGridWidget.ax.clear()
             if self.uploadedImage is not None:
                 self.outputGridWidget.ax.imshow(
                     self.uploadedImage, extent=self.size, aspect="auto"
                 )
             self.outputGridWidget.ax.scatter(xs, ys, c="grey", s=5, alpha=0.1)
-            self.outputGridWidget.ax.scatter(chX, chY, c="green", s=5)
+            self.outputGridWidget.ax.scatter(chX, chY, c="red", s=10, alpha=0.8)
             self.outputGridWidget.ax.set_xlim(self.size[0], self.size[1])
             self.outputGridWidget.ax.set_ylim(self.size[2], self.size[3])
             self.outputGridWidget.ax.set_xticks([])
             self.outputGridWidget.ax.set_yticks([])
-            self.outputGridWidget.ax.invert_yaxis()  # Invert the y-axis
+            self.outputGridWidget.ax.invert_yaxis()
             self.outputGridWidget.canvas.draw()
+
+            newChs = np.zeros(len(chX), dtype=[("Row", "<i2"), ("Col", "<i2")])
+            for idx, (x, y) in enumerate(zip(chX, chY)):
+                newChs[idx] = (np.int16(y), np.int16(x))
+
+            newChs = newChs[np.lexsort((newChs["Col"], newChs["Row"]))]
+
+            inputFilePath = os.path.dirname(self.inputFileName)
+            inputFileName = os.path.basename(self.inputFileName)
+            outputFileName = inputFileName.split(".")[0] + "_exportCh"
+            outputFileNameBrw = outputFileName + ".brw"
+            outputPath = os.path.join(inputFilePath, outputFileNameBrw)
+
+            dset = self.writeCBrw(
+                inputFilePath, outputFileName, inputFileName, parameters
+            )
+            dset.createNewBrw()
+            dset.appendBrw(
+                outputPath,
+                parameters["nRecFrames"],
+                newChs,
+                parameters["samplingRate"],
+                self.downsampleSpinBox.value(),
+                self.startTimeSpinBox.value(),
+                self.endTimeSpinBox.value(),
+            )
+
+            selected_row = self.dataTable.currentRow()
+            if selected_row >= 0:
+                status_item = self.dataTable.item(selected_row, 8)
+                status_item.setText("Exported")
+                status_item.setBackground(QColor("#d4edda"))
+
+                select_button = self.dataTable.cellWidget(selected_row, 9)
+                select_button.setIcon(QIcon("redo.png"))
+                select_button.setText("Redo")
+                select_button.setEnabled(True)
+
+            self.statusBar().showMessage("Channels exported successfully")
+
+    def runDownsampleExport(self):
+        if not self.folderName:
+            QMessageBox.information(
+                self, "No Folder Uploaded", "Please upload a folder first."
+            )
+            return
+
+        green_rows = [
+            row
+            for row in range(self.dataTable.rowCount())
+            if self.dataTable.item(row, 8).text() == "Exported"
+        ]
+
+        if green_rows:
+            reply = QMessageBox.question(
+                self,
+                "Run Downsample Export",
+                f"Do you want to run the downsample export on {len(green_rows)} exported files?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+            if reply == QMessageBox.Yes:
+                self.loading_screen = LoadingScreen()
+                self.loading_screen.show()
+
+                self.loading_screen.update_label("Running downsample export...")
+
+                commands = [
+                    "cd ../",
+                    f"py export_to_brw.py {self.folderName}",
+                    "cd dist",
+                ]
+                run_commands_in_terminal(commands)
+
+                self.loading_screen.update_label("Downsample export complete.")
+                self.loading_screen.close()
         else:
-            # Clear the output grid scatter plot
-            self.outputGridWidget.ax.clear()
-            self.outputGridWidget.canvas.draw()
+            QMessageBox.information(
+                self, "No Files Exported", "No files have been exported."
+            )
 
-    def populateTable(self, data):
-        self.dataTable.setRowCount(len(data))
-        for i, row in enumerate(data):
-            for j, item in enumerate(row[:-2]):
-                table_item = QTableWidgetItem(str(item))
-                table_item.setFlags(table_item.flags() & ~Qt.ItemIsEditable)
-                table_item.setTextAlignment(Qt.AlignCenter)
-                self.dataTable.setItem(i, j, table_item)
+    def openGUI(self):
+        commands = [
+            "cd ../../Jake-Squared/Python-GUI",
+            "py main.py",
+        ]
+        run_commands_in_terminal(commands)
 
-            status_item = QTableWidgetItem()
-            status_item.setFlags(status_item.flags() & ~Qt.ItemIsEditable)
-            status_item.setBackground(QColor("red"))
-            self.dataTable.setItem(i, len(row) - 2, status_item)
-
-            select_button = QPushButton("Select")
-            select_button.clicked.connect(lambda _, row=i: self.selectFile(row))
-            self.dataTable.setCellWidget(i, len(row) - 1, select_button)
-
-            # Store the status item and select button for later use
-            self.dataTable.status_items[i] = status_item
-            self.dataTable.select_buttons[i] = select_button
-
-    def selectFile(self, row):
-        fileName = os.path.join(
-            self.dataTable.item(row, 0).text(), self.dataTable.item(row, 1).text()
-        )
-        fileName = os.path.normpath(fileName)
-        self.inputFileName = fileName
-        self.uploadedImage = self.imageDict.get(
-            fileName
-        )  # Retrieve the image from the dictionary using the file name as the key
-        self.updateGrid()
-
-        # Check if there was a previously selected row
-        if (
-            self.previously_selected_row is not None
-            and self.previously_selected_row != row
-        ):
-            # Reactivate the previously selected row
-            self.dataTable.cellWidget(
-                self.previously_selected_row, self.dataTable.columnCount() - 1
-            ).setEnabled(True)
-
-        # Disable the select button for the currently selected row
-        self.dataTable.cellWidget(row, self.dataTable.columnCount() - 1).setEnabled(
-            False
-        )
-
-        # Clear the output grid
-        self.outputGridWidget.ax.clear()
-        self.outputGridWidget.canvas.draw()
-
-        self.dataTable.selectRow(row)
-        self.previously_selected_row = row
+    def get_type(self, h5):
+        if "ExperimentSettings" in h5.keys():
+            self.typ = "bw5"
+        elif "/3BRecInfo/3BRecVars/NRecFrames" in h5.keys():
+            self.typ = "bw4"
+        else:
+            self.typ = "File Not Recognized"
 
     def parameter(self, h5):
         if self.typ == "bw4":
@@ -757,81 +734,7 @@ class ChannelExtract(QMainWindow):
                 idx.append(n)
             return Xs, Ys, idx
 
-    def exportChannels(self):
-        # Export selected channels to a new BRW file
-        selectedPoints = self.inputGridWidget.selected_points
-        if selectedPoints:
-            chX = []
-            chY = []
-            for point in selectedPoints:
-                x, y = point
-                if (
-                    y % (self.rowSkipSpinBox.value() + 1) == 0
-                    and x % (self.colSkipSpinBox.value() + 1) == 0
-                ):
-                    chX.append(x)
-                    chY.append(y)
-            h5 = h5py.File(self.inputFileName, "r")
-            parameters = self.parameter(h5)
-            chsList = parameters["recElectrodeList"]
-            xs, ys, idx = self.getChMap(chsList)
-            h5.close()
-
-            newChs = np.zeros(len(chX), dtype=[("Row", "<i2"), ("Col", "<i2")])
-            for idx, (x, y) in enumerate(zip(chX, chY)):
-                newChs[idx] = (np.int16(y), np.int16(x))
-
-            newChs = newChs[np.lexsort((newChs["Col"], newChs["Row"]))]
-
-            inputFilePath = os.path.dirname(self.inputFileName)
-            inputFileName = os.path.basename(self.inputFileName)
-            outputFileName = inputFileName.split(".")[0] + "_exportCh"
-            outputFileNameBrw = outputFileName + ".brw"
-            outputPath = os.path.join(inputFilePath, outputFileNameBrw)
-
-            dset = self.writeCBrw(
-                inputFilePath, outputFileName, inputFileName, parameters
-            )
-            dset.createNewBrw()
-            dset.appendBrw(
-                outputPath,
-                parameters["nRecFrames"],
-                newChs,
-                parameters["samplingRate"],
-                self.downsampleSpinBox.value(),
-                self.startTimeSpinBox.value(),
-                self.endTimeSpinBox.value(),
-            )
-            # Update the output grid with exported channels
-            self.outputGridWidget.ax.clear()
-            if self.uploadedImage is not None:
-                self.outputGridWidget.ax.imshow(
-                    self.uploadedImage, extent=self.size, aspect="auto"
-                )
-            self.outputGridWidget.ax.scatter(xs, ys, c="grey", s=5, alpha=0.1)
-            self.outputGridWidget.ax.scatter(chX, chY, c="red", s=5)
-            self.outputGridWidget.ax.set_xlim(self.size[0], self.size[1])
-            self.outputGridWidget.ax.set_ylim(self.size[2], self.size[3])
-            self.outputGridWidget.ax.set_xticks([])
-            self.outputGridWidget.ax.set_yticks([])
-            self.outputGridWidget.ax.invert_yaxis()
-            self.outputGridWidget.canvas.draw()
-
-            # Update the status light to green and change the select button to "Redo"
-            selected_row = self.dataTable.currentRow()
-            if selected_row >= 0:
-                status_item = self.dataTable.status_items[selected_row]
-                status_item.setBackground(QColor("green"))
-
-                select_button = self.dataTable.cellWidget(
-                    selected_row, self.dataTable.columnCount() - 1
-                )
-                if select_button is not None:
-                    select_button.setEnabled(True)
-                    select_button.setText("Redo")
-
     def writeCBrw(self, path, name, template, parameters):
-        # Create and write to a new BRW file
         dset = writeCBrw(path, name, template, parameters)
         return dset
 
@@ -926,13 +829,12 @@ class LoadingScreen(QWidget):
         self.setLayout(layout)
 
         self.label = QLabel("Checking for updates...")
+        self.label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.label)
 
         self.progress_bar = QProgressBar()
+        self.progress_bar.setTextVisible(False)
         layout.addWidget(self.progress_bar)
-
-    def update_progress(self, value):
-        self.progress_bar.setValue(value)
 
     def update_label(self, text):
         self.label.setText(text)
@@ -1064,6 +966,7 @@ def check_for_updates():
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
     window = ChannelExtract()
 
     # Check for updates
