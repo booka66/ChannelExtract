@@ -963,6 +963,18 @@ def run_commands_in_terminal(commands):
         print(f"Error occurred: {str(e)}")
 
 
+def make_silly_message(message):
+    separator = "*" * len(message)
+    output = [
+        "echo.",
+        f"echo {separator}",
+        f"echo {message}",
+        f"echo {separator}",
+        "echo.",
+    ]
+    return output
+
+
 def check_for_updates():
     repo_url = "https://github.com/booka66/ChannelExtract.git"
     home_dir = os.path.expanduser("~")
@@ -1016,20 +1028,26 @@ def check_for_updates():
                 loading_screen.update_label("Installing dependencies...")
 
                 print("Installing dependencies...")
-                commands = [
+
+                initial_commands = [
                     "cd ../",
                     "pip install -r requirements.txt",
                     "pyinstaller --onefile --windowed ChannelExtract.py",
-                    "echo.",
-                    "echo *************************************************************************************",
-                    "echo Update complete! Imma go ahead and restart the application for you. xoxo - Love, Jake",
-                    "echo *************************************************************************************",
-                    "echo.",
+                ]
+                silly_message_commands = (
+                    make_silly_message(
+                        "Update complete! Imma go ahead and restart the application for you. xoxo - Love, Jake"
+                    ),
+                )
+                kill_commands = [
                     "timeout /t 5 /nobreak",
                     "cd dist",
                     "start ChannelExtract.exe",
                     "taskkill /IM cmd.exe /F",
                 ]
+
+                commands = initial_commands + silly_message_commands + kill_commands
+
                 run_commands_in_terminal(commands)
                 loading_screen.update_label("Building executable...")
                 sys.exit()
