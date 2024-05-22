@@ -655,11 +655,6 @@ class ChannelExtract(QMainWindow):
                 QMessageBox.No,
             )
             if reply == QMessageBox.Yes:
-                self.loading_screen = LoadingScreen()
-                self.loading_screen.show()
-
-                self.loading_screen.update_label("Running downsample export...")
-
                 driveLetter = os.path.splitdrive(self.folderName)[0]
 
                 commands = [
@@ -668,9 +663,6 @@ class ChannelExtract(QMainWindow):
                     "cd dist",
                 ]
                 run_commands_in_terminal(commands)
-
-                self.loading_screen.update_label("Downsample export complete.")
-                self.loading_screen.close()
         else:
             QMessageBox.information(
                 self, "No Files Exported", "No files have been exported."
@@ -917,28 +909,6 @@ class writeCBrw:
         self.brw.close()
 
 
-class LoadingScreen(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Loading")
-        self.setFixedSize(300, 100)
-        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
-
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-
-        self.label = QLabel("Checking for updates...")
-        self.label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.label)
-
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setTextVisible(False)
-        layout.addWidget(self.progress_bar)
-
-    def update_label(self, text):
-        self.label.setText(text)
-
-
 def run_commands_in_terminal(commands):
     try:
         if sys.platform == "darwin":  # macOS
@@ -979,7 +949,6 @@ def check_for_updates():
     repo_url = "https://github.com/booka66/ChannelExtract.git"
     home_dir = os.path.expanduser("~")
     local_path = os.path.join(home_dir, "ChannelExtract")
-    loading_screen = LoadingScreen()
 
     try:
         try:
@@ -1015,17 +984,12 @@ def check_for_updates():
                 QMessageBox.Yes | QMessageBox.No,
             )
             if reply == QMessageBox.Yes:
-                loading_screen.show()
-                loading_screen.update_label("Updating...")
-
                 # If the repository exists locally, pull the latest changes
                 if os.path.exists(local_path):
                     subprocess.call(["git", "-C", local_path, "pull"])
                 else:
                     # Clone the repository if it doesn't exist locally
                     subprocess.call(["git", "clone", repo_url, local_path])
-
-                loading_screen.update_label("Installing dependencies...")
 
                 print("Installing dependencies...")
 
@@ -1049,12 +1013,7 @@ def check_for_updates():
                 commands = initial_commands + silly_message_commands + kill_commands
 
                 run_commands_in_terminal(commands)
-                loading_screen.update_label("Building executable...")
                 sys.exit()
-            else:
-                loading_screen.close()
-        else:
-            loading_screen.close()
 
     except subprocess.CalledProcessError as e:
         error_message = f"Error occurred during update check: {str(e)}"
