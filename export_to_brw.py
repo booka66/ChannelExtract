@@ -664,7 +664,8 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     for downsampled_channel_data in results:
         nrecFrame = len(downsampled_channel_data)
-        temp_file.write(downsampled_channel_data.tobytes())
+        channel_data_array = np.array(downsampled_channel_data)
+        temp_file.write(channel_data_array.tobytes())
     temp_file.close()
 
     original_sampling_rate = parameters["samplingRate"]
@@ -677,10 +678,10 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     with open(temp_file.name, "rb") as f:
         chunk_size = 1000000  # Adjust the chunk size as needed
         while True:
-            chunk = f.read(chunk_size * downsampled_channel_data.itemsize)
+            chunk = f.read(chunk_size * channel_data_array.itemsize)
             if not chunk:
                 break
-            data = np.frombuffer(chunk, dtype=downsampled_channel_data.dtype)
+            data = np.frombuffer(chunk, dtype=channel_data_array.dtype)
             data = data.reshape(-1, len(ind_rec))[:, ind]
             dset.writeRaw(data, typeFlatten="F")
 

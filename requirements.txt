@@ -6,4 +6,3 @@ PyQt5
 PyWavelets
 scipy
 tqdm
-tempfile
