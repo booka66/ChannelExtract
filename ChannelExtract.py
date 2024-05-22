@@ -51,10 +51,12 @@ class ScatterPlot(QWidget):
         self.setLayout(layout)
 
         fig = Figure(figsize=(5, 5), dpi=100)
+        fig.set_tight_layout(True)
         self.canvas = FigureCanvas(fig)
         layout.addWidget(self.canvas)
 
         self.ax = fig.add_subplot(111)
+        self.ax.set_aspect("equal")  # Set the aspect ratio to be equal
 
         self.x = np.arange(1, 65)
         self.y = np.arange(1, 65)
@@ -137,6 +139,7 @@ class ChannelExtract(QMainWindow):
         self.createHeader()
         self.createDataTable()
         self.createChannelSelectionSection()
+        self.createSplitter()
         self.createStatusBar()
 
         # Initialize variables
@@ -171,6 +174,10 @@ class ChannelExtract(QMainWindow):
         self.mainLayout.addLayout(headerLayout)
 
     def createDataTable(self):
+        self.dataTableWidget = QWidget()
+        self.dataTableLayout = QVBoxLayout()
+        self.dataTableWidget.setLayout(self.dataTableLayout)
+
         self.dataTable = QTableWidget()
         self.dataTable.setColumnCount(10)
         self.dataTable.setHorizontalHeaderLabels(
@@ -191,18 +198,23 @@ class ChannelExtract(QMainWindow):
         self.dataTable.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeToContents
         )
-        self.mainLayout.addWidget(self.dataTable)
+        self.dataTableLayout.addWidget(self.dataTable)
 
     def createChannelSelectionSection(self):
+        self.channelSelectionWidget = QWidget()
+        self.channelSelectionLayout = QVBoxLayout()
+        self.channelSelectionWidget.setLayout(self.channelSelectionLayout)
+
         groupBox = QGroupBox("Channel Selection")
         groupBox.setFont(QFont("Arial", 12))
 
-        splitter = QSplitter(Qt.Horizontal)
+        gridLayout = QGridLayout()
 
         # Create input grid
         self.inputGridWidget = ScatterPlot(self)
         self.inputGridWidget.setMinimumSize(500, 500)
-        splitter.addWidget(self.inputGridWidget)
+        self.inputGridWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        gridLayout.addWidget(self.inputGridWidget, 0, 0)
 
         # Create channel settings section
         settingsWidget = QWidget()
@@ -265,21 +277,28 @@ class ChannelExtract(QMainWindow):
         openGUIButton.clicked.connect(self.openGUI)
         settingsLayout.addWidget(openGUIButton)
 
-        splitter.addWidget(settingsWidget)
+        gridLayout.addWidget(settingsWidget, 0, 1)
 
         # Create output grid
         self.outputGridWidget = ScatterPlot()
         self.outputGridWidget.setMinimumSize(500, 500)
-        splitter.addWidget(self.outputGridWidget)
+        self.outputGridWidget.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Expanding
+        )
+        gridLayout.addWidget(self.outputGridWidget, 0, 2)
 
-        layout = QVBoxLayout()
-        layout.addWidget(splitter)
-        groupBox.setLayout(layout)
-        self.mainLayout.addWidget(groupBox)
+        groupBox.setLayout(gridLayout)
+        self.channelSelectionLayout.addWidget(groupBox)
 
     def createStatusBar(self):
         self.statusBar().setFont(QFont("Arial", 10))
         self.statusBar().showMessage("Ready")
+
+    def createSplitter(self):
+        splitter = QSplitter(Qt.Vertical)
+        splitter.addWidget(self.dataTableWidget)
+        splitter.addWidget(self.channelSelectionWidget)
+        self.mainLayout.addWidget(splitter)
 
     def updateChannelCount(self):
         selectedPoints = self.inputGridWidget.selected_points
@@ -440,12 +459,20 @@ class ChannelExtract(QMainWindow):
 
             self.inputGridWidget.ax.clear()
             if self.uploadedImage is not None:
-                self.inputGridWidget.ax.imshow(
-                    self.uploadedImage, extent=self.size, aspect="auto"
-                )
-            self.inputGridWidget.ax.scatter(Xs, Ys, c="k", s=10, alpha=0.5)
+                # Set the aspect ratio to 'equal' to maintain a square grid
+                self.inputGridWidget.ax.set_aspect("equal")
 
-            self.inputGridWidget.ax.set_xlim(self.size[0], self.size[1])
+                # Adjust the image extent to fit the square grid
+                extent = self.size.copy()
+                extent[1] = extent[2]  # Set the width equal to the height
+                self.inputGridWidget.ax.imshow(
+                    self.uploadedImage, extent=extent, aspect="auto"
+                )
+            else:
+                self.inputGridWidget.ax.set_aspect("equal")
+
+            self.inputGridWidget.ax.scatter(Xs, Ys, c="k", s=10, alpha=0.5)
+            self.inputGridWidget.ax.set_xlim(self.size[0], self.size[2])
             self.inputGridWidget.ax.set_ylim(self.size[2], self.size[3])
             self.inputGridWidget.ax.set_xticks([])
             self.inputGridWidget.ax.set_yticks([])
@@ -485,12 +512,20 @@ class ChannelExtract(QMainWindow):
 
             self.outputGridWidget.ax.clear()
             if self.uploadedImage is not None:
+                # Set the aspect ratio to 'equal' to maintain a square grid
+                self.outputGridWidget.ax.set_aspect("equal")
+
+                # Adjust the image extent to fit the square grid
+                extent = self.size.copy()
+                extent[1] = extent[2]  # Set the width equal to the height
                 self.outputGridWidget.ax.imshow(
-                    self.uploadedImage, extent=self.size, aspect="auto"
+                    self.uploadedImage, extent=extent, aspect="auto"
                 )
+            else:
+                self.outputGridWidget.ax.set_aspect("equal")
             self.outputGridWidget.ax.scatter(xs, ys, c="grey", s=5, alpha=0.1)
             self.outputGridWidget.ax.scatter(chX, chY, c="red", s=10, alpha=0.8)
-            self.outputGridWidget.ax.set_xlim(self.size[0], self.size[1])
+            self.outputGridWidget.ax.set_xlim(self.size[0], self.size[2])
             self.outputGridWidget.ax.set_ylim(self.size[2], self.size[3])
             self.outputGridWidget.ax.set_xticks([])
             self.outputGridWidget.ax.set_yticks([])
