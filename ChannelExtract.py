@@ -655,11 +655,12 @@ class ChannelExtract(QMainWindow):
                 QMessageBox.No,
             )
             if reply == QMessageBox.Yes:
-                driveLetter = os.path.splitdrive(self.folderName)[0]
+                folderName = os.path.normpath(self.folderName)
+                driveLetter = os.path.splitdrive(folderName)[0]
 
                 commands = [
                     "cd ../",
-                    f"py export_to_brw.py {driveLetter} {self.folderName}",
+                    f"py export_to_brw.py {driveLetter} {folderName}",
                     "cd dist",
                 ]
                 run_commands_in_terminal(commands)
