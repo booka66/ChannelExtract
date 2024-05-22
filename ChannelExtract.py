@@ -969,9 +969,7 @@ def check_for_updates():
             .split()[0]
         )
 
-        # Check if the repository exists locally
         if os.path.exists(local_path):
-            # Get the current commit hash of the local repository
             local_commit = (
                 subprocess.check_output(["git", "-C", local_path, "rev-parse", "HEAD"])
                 .decode("utf-8")
@@ -980,9 +978,7 @@ def check_for_updates():
         else:
             local_commit = ""
 
-        # Compare the commit hashes
         if remote_commit != local_commit:
-            # Prompt the user to update or automatically initiate the update process
             reply = QMessageBox.question(
                 None,
                 "Update Available",
@@ -1056,7 +1052,6 @@ if __name__ == "__main__":
     app.setStyle("Fusion")
     window = ChannelExtract()
 
-    # Check for updates
     check_for_updates()
 
     sys.exit(app.exec_())
