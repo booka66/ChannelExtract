@@ -998,11 +998,11 @@ def check_for_updates():
                     "pip install -r requirements.txt",
                     "pyinstaller --onefile --windowed ChannelExtract.py",
                 ]
-                silly_message_commands = (
+                silly_message_commands = [
                     make_silly_message(
                         "Update complete! Imma go ahead and restart the application for you. xoxo - Love, Jake"
                     ),
-                )
+                ]
                 kill_commands = [
                     "timeout /t 5 /nobreak",
                     "cd dist",
