@@ -40,11 +40,12 @@ import subprocess
 
 
 class ScatterPlot(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, uploadedImage=None):
         super().__init__(parent)
         self.initUI()
         self.parent = parent
         self.selected_points = []
+        self.uploadedImage = uploadedImage
 
     def initUI(self):
         layout = QVBoxLayout()
@@ -81,9 +82,18 @@ class ScatterPlot(QWidget):
 
     def lasso_callback(self, verts):
         path = Path(verts)
-        new_selected_points = [
-            (x, y) for x, y in zip(self.x, self.y) if path.contains_point((x, y))
-        ]
+
+        if self.uploadedImage is not None:
+            height, width, _ = self.uploadedImage.shape
+            new_selected_points = [
+                (x * width / 64, y * height / 64)
+                for x, y in zip(self.x, self.y)
+                if path.contains_point((x * width / 64, y * height / 64))
+            ]
+        else:
+            new_selected_points = [
+                (x, y) for x, y in zip(self.x, self.y) if path.contains_point((x, y))
+            ]
 
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ShiftModifier:
@@ -97,21 +107,40 @@ class ScatterPlot(QWidget):
         if hasattr(self, "selected_points_plot"):
             self.selected_points_plot.remove()
 
-        self.selected_points_plot = self.ax.scatter(
-            [point[0] for point in self.selected_points],
-            [point[1] for point in self.selected_points],
-            c="red",
-            s=10,
-            alpha=0.8,
-        )
+        if self.uploadedImage is not None:
+            self.selected_points_plot = self.ax.scatter(
+                [point[0] for point in self.selected_points],
+                [point[1] for point in self.selected_points],
+                c="red",
+                s=10,
+                alpha=0.8,
+            )
+        else:
+            self.selected_points_plot = self.ax.scatter(
+                [point[0] for point in self.selected_points],
+                [point[1] for point in self.selected_points],
+                c="red",
+                s=10,
+                alpha=0.8,
+            )
 
         verts = np.append(verts, [verts[0]], axis=0)
         if hasattr(self, "lasso_line"):
             self.lasso_line.remove()
 
-        self.lasso_line = self.ax.plot(
-            verts[:, 0], verts[:, 1], "b-", linewidth=1, alpha=0.8
-        )[0]
+        if self.uploadedImage is not None:
+            verts_scaled = [(x * width / 64, y * height / 64) for x, y in verts]
+            self.lasso_line = self.ax.plot(
+                [point[0] for point in verts_scaled],
+                [point[1] for point in verts_scaled],
+                "b-",
+                linewidth=1,
+                alpha=0.8,
+            )[0]
+        else:
+            self.lasso_line = self.ax.plot(
+                verts[:, 0], verts[:, 1], "b-", linewidth=1, alpha=0.8
+            )[0]
 
         self.canvas.draw()
 
@@ -458,26 +487,37 @@ class ChannelExtract(QMainWindow):
             Xs, Ys, idx = self.getChMap(chsList)
 
             self.inputGridWidget.ax.clear()
+            self.inputGridWidget.uploadedImage = (
+                self.uploadedImage
+            )  # Pass the uploadedImage to the ScatterPlot instance
             if self.uploadedImage is not None:
-                # Set the aspect ratio to 'equal' to maintain a square grid
-                self.inputGridWidget.ax.set_aspect("equal")
+                # Calculate the aspect ratio based on the image dimensions
+                height, width, _ = self.uploadedImage.shape
+                aspect_ratio = width / height
 
-                # Adjust the image extent to fit the square grid
-                extent = self.size.copy()
-                extent[1] = extent[2]  # Set the width equal to the height
+                # Set the aspect ratio of the grid to match the image aspect ratio
+                self.inputGridWidget.ax.set_aspect(aspect_ratio)
+
+                # Display the image and set the x and y limits based on the image dimensions
                 self.inputGridWidget.ax.imshow(
-                    self.uploadedImage, extent=extent, aspect="auto"
+                    self.uploadedImage, extent=[0, width, height, 0]
                 )
+
+                # Scale the grid coordinates to match the image dimensions
+                Xs = [x * width / 64 for x in Xs]
+                Ys = [y * height / 64 for y in Ys]
+
+                self.inputGridWidget.ax.set_xlim(0, width)
+                self.inputGridWidget.ax.set_ylim(height, 0)
             else:
                 self.inputGridWidget.ax.set_aspect("equal")
+                self.inputGridWidget.ax.set_xlim(self.size[0], self.size[2])
+                self.inputGridWidget.ax.set_ylim(self.size[2], self.size[3])
 
             self.inputGridWidget.ax.scatter(Xs, Ys, c="k", s=10, alpha=0.5)
-            self.inputGridWidget.ax.set_xlim(self.size[0], self.size[2])
-            self.inputGridWidget.ax.set_ylim(self.size[2], self.size[3])
             self.inputGridWidget.ax.set_xticks([])
             self.inputGridWidget.ax.set_yticks([])
 
-            self.inputGridWidget.ax.invert_yaxis()
             self.inputGridWidget.canvas.draw()
 
             self.endTimeSpinBox.setRange(0, endTime)
@@ -511,22 +551,36 @@ class ChannelExtract(QMainWindow):
             h5.close()
 
             self.outputGridWidget.ax.clear()
+            self.outputGridWidget.uploadedImage = (
+                self.uploadedImage
+            )  # Pass the uploadedImage to the ScatterPlot instance
             if self.uploadedImage is not None:
-                # Set the aspect ratio to 'equal' to maintain a square grid
-                self.outputGridWidget.ax.set_aspect("equal")
+                height, width, _ = self.uploadedImage.shape
+                aspect_ratio = width / height
 
-                # Adjust the image extent to fit the square grid
-                extent = self.size.copy()
-                extent[1] = extent[2]  # Set the width equal to the height
+                # Set the aspect ratio of the grid to match the image aspect ratio
+                self.outputGridWidget.ax.set_aspect(aspect_ratio)
+
+                # Display the image and set the x and y limits based on the image dimensions
                 self.outputGridWidget.ax.imshow(
-                    self.uploadedImage, extent=extent, aspect="auto"
+                    self.uploadedImage, extent=[0, width, height, 0]
                 )
+
+                # Scale the grid coordinates to match the image dimensions
+                xs = [x * width / 64 for x in xs]
+                ys = [y * height / 64 for y in ys]
+                chX = [x * width / 64 for x in chX]
+                chY = [y * height / 64 for y in chY]
+
+                self.outputGridWidget.ax.set_xlim(0, width)
+                self.outputGridWidget.ax.set_ylim(height, 0)
             else:
                 self.outputGridWidget.ax.set_aspect("equal")
+                self.outputGridWidget.ax.set_xlim(self.size[0], self.size[2])
+                self.outputGridWidget.ax.set_ylim(self.size[2], self.size[3])
+
             self.outputGridWidget.ax.scatter(xs, ys, c="grey", s=5, alpha=0.1)
             self.outputGridWidget.ax.scatter(chX, chY, c="red", s=10, alpha=0.8)
-            self.outputGridWidget.ax.set_xlim(self.size[0], self.size[2])
-            self.outputGridWidget.ax.set_ylim(self.size[2], self.size[3])
             self.outputGridWidget.ax.set_xticks([])
             self.outputGridWidget.ax.set_yticks([])
             self.outputGridWidget.ax.invert_yaxis()
@@ -534,7 +588,10 @@ class ChannelExtract(QMainWindow):
 
             newChs = np.zeros(len(chX), dtype=[("Row", "<i2"), ("Col", "<i2")])
             for idx, (x, y) in enumerate(zip(chX, chY)):
-                newChs[idx] = (np.int16(y), np.int16(x))
+                if self.uploadedImage is not None:
+                    newChs[idx] = (np.int16(y * 64 / height), np.int16(x * 64 / width))
+                else:
+                    newChs[idx] = (np.int16(y), np.int16(x))
 
             newChs = newChs[np.lexsort((newChs["Col"], newChs["Row"]))]
 
