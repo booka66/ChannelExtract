@@ -1026,17 +1026,6 @@ def check_for_updates():
                 ]
                 run_commands_in_terminal(commands)
                 loading_screen.update_label("Building executable...")
-
-                if sys.platform == "darwin":
-                    app_dir = "/Applications"
-                elif sys.platform == "win32":
-                    app_dir = os.path.join(os.environ["PROGRAMFILES"], "ChannelExtract")
-                else:
-                    raise Exception("Unsupported operating system")
-
-                loading_screen.update_label(
-                    "Update complete. Please restart the application. xoxo - Love, Jake"
-                )
                 sys.exit()
             else:
                 loading_screen.close()
