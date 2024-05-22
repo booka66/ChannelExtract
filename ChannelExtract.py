@@ -664,7 +664,7 @@ class ChannelExtract(QMainWindow):
 
                 commands = [
                     "cd ../",
-                    f"py export_to_brw.py '{driveLetter}' '{self.folderName}'",
+                    f"py export_to_brw.py {driveLetter} {self.folderName}",
                     "cd dist",
                 ]
                 run_commands_in_terminal(commands)
