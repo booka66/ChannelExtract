@@ -923,6 +923,7 @@ def make_silly_message():
     silly_messages = [
         "Update complete! Imma go ahead and restart the application for you. xoxo - Love, Jake",
         "*insert Norby's waaaaaaaa happy sound* Update complete! Restarting the application for you :D",
+        "Enjoy your bug free app. Well. Mostly bug free. I mean, I tried. - Jake",
     ]
     message = np.random.choice(silly_messages)
     separator = "*" * len(message)
