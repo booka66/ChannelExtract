@@ -661,12 +661,14 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
         raw_chunk = np.array(raw_chunk)
 
         if chunk == 0:
-            dset.writeRaw(raw_chunk[ind[start_idx:end_idx], :], typeFlatten="F")
+            dset.writeRaw(raw_chunk[ind[: len(chunk_ind_rec)], :], typeFlatten="F")
             dset.writeSamplingFreq(fs)
             dset.witeFrames(nrecFrame)
             dset.writeChs(newChs)
         else:
-            dset.appendBrw(output_path, nrecFrame, raw_chunk[ind[start_idx:end_idx], :])
+            dset.appendBrw(
+                output_path, nrecFrame, raw_chunk[ind[: len(chunk_ind_rec)], :]
+            )
 
     original_sampling_rate = parameters["samplingRate"]
     desired_sampling_rate = chfileInfo["newSampling"]
