@@ -358,6 +358,7 @@ class ChannelExtract(QMainWindow):
             for brwFile in brwFiles:
                 try:
                     fileName = os.path.join(self.folderName, brwFile)
+                    fileName = os.path.normpath(fileName)
                     if fileName.__contains__("resample") or fileName.__contains__(
                         "exportCh"
                     ):
