@@ -662,8 +662,10 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
         )
 
     temp_file = tempfile.NamedTemporaryFile(delete=False)
+    nrecFrame = None
     for downsampled_channel_data in results:
-        nrecFrame = len(downsampled_channel_data)
+        if nrecFrame is None:
+            nrecFrame = len(downsampled_channel_data)
         channel_data_array = np.array(downsampled_channel_data)
         temp_file.write(channel_data_array.tobytes())
     temp_file.close()
@@ -682,7 +684,8 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
             if not chunk:
                 break
             data = np.frombuffer(chunk, dtype=channel_data_array.dtype)
-            data = data.reshape(-1, len(ind_rec))[:, ind]
+            num_channels = len(results)
+            data = data.reshape(-1, num_channels)
             dset.writeRaw(data, typeFlatten="F")
 
     os.unlink(temp_file.name)
