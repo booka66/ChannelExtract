@@ -999,7 +999,6 @@ def check_for_updates():
             if reply == QMessageBox.Yes:
                 loading_screen.show()
                 loading_screen.update_label("Updating...")
-                loading_screen.update_progress(25)
 
                 # If the repository exists locally, pull the latest changes
                 if os.path.exists(local_path):
@@ -1009,7 +1008,6 @@ def check_for_updates():
                     subprocess.call(["git", "clone", repo_url, local_path])
 
                 loading_screen.update_label("Installing dependencies...")
-                loading_screen.update_progress(40)
 
                 print("Installing dependencies...")
                 commands = [
@@ -1028,7 +1026,6 @@ def check_for_updates():
                 ]
                 run_commands_in_terminal(commands)
                 loading_screen.update_label("Building executable...")
-                loading_screen.update_progress(60)
 
                 if sys.platform == "darwin":
                     app_dir = "/Applications"
@@ -1040,7 +1037,6 @@ def check_for_updates():
                 loading_screen.update_label(
                     "Update complete. Please restart the application. xoxo - Love, Jake"
                 )
-                loading_screen.update_progress(100)
                 sys.exit()
             else:
                 loading_screen.close()
@@ -1055,6 +1051,30 @@ def check_for_updates():
         error_message = f"Error occurred during update check: {str(e)}"
         print(error_message)
         QMessageBox.critical(None, "Update Error Womp Womp", error_message)
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Question)
+        msg.setText("Click Yes to force download the latest version of ChannelExtract")
+        msg.setWindowTitle("Update Available")
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg.setDefaultButton(QMessageBox.Yes)
+        result = msg.exec_()
+        if result == QMessageBox.Yes:
+            commands = [
+                "cd ../",
+                "pip install -r requirements.txt",
+                "pyinstaller --onefile --windowed ChannelExtract.py",
+                "echo.",
+                "echo *************************************************************************************",
+                "echo Update complete! Imma go ahead and restart the application for you. xoxo - Love, Jake",
+                "echo *************************************************************************************",
+                "echo.",
+                "timeout /t 5 /nobreak",
+                "cd dist",
+                "start ChannelExtract.exe",
+                "taskkill /IM cmd.exe /F",
+            ]
+            run_commands_in_terminal(commands)
+            sys.exit()
 
 
 if __name__ == "__main__":
