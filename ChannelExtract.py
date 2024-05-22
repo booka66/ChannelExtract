@@ -934,7 +934,20 @@ def run_commands_in_terminal(commands):
         print(f"Error occurred: {str(e)}")
 
 
-def make_silly_message(message):
+def make_silly_message():
+    silly_messages = [
+        "Update complete! Imma go ahead and restart the application for you. xoxo - Love, Jake",
+        "Guess what? Your app is now shinier than a disco ball! Update done, restarting in 3, 2, 1... - Your pal, Alex",
+        "Congratulations! Your app just leveled up. Restarting to show off its new skills. - High fives, Emily",
+        "Beep boop! I updated your app while you were blinking. Restarting to activate awesomeness. - Yours truly, Robo-Sam",
+        "Update successful! I'm just going to turn it off and on again, because that's what the cool kids do. - Peace out, Liam",
+        "Your app is now bug-free! Well, mostly. Restarting to celebrate. - Hugs and bugs, Sophia",
+        "I've worked my magic, and your app is now updated! Restarting to let the pixie dust settle. - Abracadabra, Olivia",
+        "Update complete! I'm just going to give your app a little nap while it restarts. Sweet dreams! - Bedtime stories, Ethan",
+        "Woohoo! Your app is now faster than a cheetah on espresso. Restarting in a flash. - Zoom zoom, Noah",
+        "Update finished! I'm going to restart your app now, because I'm a rebel like that. - Stay wild, Ava",
+    ]
+    message = np.random.choice(silly_messages)
     separator = "*" * len(message)
     output = [
         "echo.",
@@ -999,11 +1012,7 @@ def check_for_updates():
                     "pip install -r requirements.txt",
                     "pyinstaller --onefile --windowed ChannelExtract.py",
                 ]
-                silly_message_commands = [
-                    make_silly_message(
-                        "Update complete! Imma go ahead and restart the application for you. xoxo - Love, Jake"
-                    ),
-                ]
+                silly_message_commands = make_silly_message()
                 kill_commands = [
                     "timeout /t 5 /nobreak",
                     "cd dist",
