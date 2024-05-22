@@ -660,9 +660,11 @@ class ChannelExtract(QMainWindow):
 
                 self.loading_screen.update_label("Running downsample export...")
 
+                driveLetter = os.path.splitdrive(self.folderName)[0]
+
                 commands = [
                     "cd ../",
-                    f"py export_to_brw.py {self.folderName}",
+                    f"py export_to_brw.py '{driveLetter}' '{self.folderName}'",
                     "cd dist",
                 ]
                 run_commands_in_terminal(commands)
