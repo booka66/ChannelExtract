@@ -86,7 +86,7 @@ class ScatterPlot(QWidget):
         if self.uploadedImage is not None:
             height, width, _ = self.uploadedImage.shape
             new_selected_points = [
-                (x * width / 64, y * height / 64)
+                (x, y)
                 for x, y in zip(self.x, self.y)
                 if path.contains_point((x * width / 64, y * height / 64))
             ]
@@ -109,8 +109,8 @@ class ScatterPlot(QWidget):
 
         if self.uploadedImage is not None:
             self.selected_points_plot = self.ax.scatter(
-                [point[0] for point in self.selected_points],
-                [point[1] for point in self.selected_points],
+                [point[0] * width / 64 for point in self.selected_points],
+                [point[1] * height / 64 for point in self.selected_points],
                 c="red",
                 s=10,
                 alpha=0.8,
@@ -127,20 +127,9 @@ class ScatterPlot(QWidget):
         verts = np.append(verts, [verts[0]], axis=0)
         if hasattr(self, "lasso_line"):
             self.lasso_line.remove()
-
-        if self.uploadedImage is not None:
-            verts_scaled = [(x * width / 64, y * height / 64) for x, y in verts]
-            self.lasso_line = self.ax.plot(
-                [point[0] for point in verts_scaled],
-                [point[1] for point in verts_scaled],
-                "b-",
-                linewidth=1,
-                alpha=0.8,
-            )[0]
-        else:
-            self.lasso_line = self.ax.plot(
-                verts[:, 0], verts[:, 1], "b-", linewidth=1, alpha=0.8
-            )[0]
+        self.lasso_line = self.ax.plot(
+            verts[:, 0], verts[:, 1], "b-", linewidth=1, alpha=0.8
+        )[0]
 
         self.canvas.draw()
 
@@ -518,6 +507,7 @@ class ChannelExtract(QMainWindow):
             self.inputGridWidget.ax.scatter(Xs, Ys, c="k", s=10, alpha=0.5)
             self.inputGridWidget.ax.set_xticks([])
             self.inputGridWidget.ax.set_yticks([])
+            self.inputGridWidget.ax.invert_yaxis()
 
             self.inputGridWidget.canvas.draw()
 
@@ -533,17 +523,20 @@ class ChannelExtract(QMainWindow):
 
     def exportChannels(self):
         selectedPoints = self.inputGridWidget.selected_points
+        print("Selected points:", selectedPoints)
         if selectedPoints:
             chX = []
             chY = []
             for point in selectedPoints:
                 x, y = point
                 if (
-                    y % (self.rowSkipSpinBox.value() + 1) == 0
-                    and x % (self.colSkipSpinBox.value() + 1) == 0
+                    round(y) % (self.rowSkipSpinBox.value() + 1) == 0
+                    and round(x) % (self.colSkipSpinBox.value() + 1) == 0
                 ):
                     chX.append(x)
                     chY.append(y)
+            print("chX:", chX)
+            print("chY:", chY)
 
             h5 = h5py.File(self.inputFileName, "r")
             parameters = self.parameter(h5)
@@ -580,8 +573,19 @@ class ChannelExtract(QMainWindow):
                 self.outputGridWidget.ax.set_xlim(self.size[0], self.size[2])
                 self.outputGridWidget.ax.set_ylim(self.size[2], self.size[3])
 
+            # Plot the gray dots
             self.outputGridWidget.ax.scatter(xs, ys, c="grey", s=5, alpha=0.1)
-            self.outputGridWidget.ax.scatter(chX, chY, c="red", s=10, alpha=0.8)
+
+            # Print the red dot coordinates
+            print("Red dot coordinates:")
+            for x, y in zip(chX, chY):
+                print(f"({x}, {y})")
+
+            # Plot the red dots on top with a higher zorder
+            self.outputGridWidget.ax.scatter(
+                chX, chY, c="red", s=10, alpha=0.8, zorder=10
+            )
+
             self.outputGridWidget.ax.set_xticks([])
             self.outputGridWidget.ax.set_yticks([])
             self.outputGridWidget.ax.invert_yaxis()
