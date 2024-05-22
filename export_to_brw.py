@@ -775,7 +775,7 @@ def file_check(path, filename):
     return (chfilePath, recfilePath, chfileInfo, parameters, filematch)
 
 
-def run(folder, drive_letter):
+def run(drive_letter, folder):
     fileCount = 1
     os.chdir(drive_letter)
     for filename in os.listdir(folder):
@@ -859,6 +859,9 @@ def run(folder, drive_letter):
 
 
 if __name__ == "__main__":
-    folder = sys.argv[1]
-    drive_letter = sys.argv[2]
-    run(folder, drive_letter)
+    drive_letter = sys.argv[1]
+    folder = ""
+    if len(sys.argv) > 2:
+        for arg in sys.argv[2:]:
+            folder += arg + " "
+    run(drive_letter, folder)
