@@ -715,13 +715,17 @@ class ChannelExtract(QMainWindow):
             if self.dataTable.item(row, 8).text() == "Exported"
         ]
 
+        green_row_file_names = [
+            self.dataTable.item(row, 1).text() for row in green_rows
+        ]
+
         if green_rows:
             reply = QMessageBox.question(
                 self,
                 "Run Downsample Export",
-                f"Do you want to run the downsample export on {len(green_rows)} exported files?",
+                f"Do you want to run the downsample export on {len(green_rows)} exported files?\nFiles:\n{', '.join(green_row_file_names)}",
                 QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No,
+                QMessageBox.Yes,
             )
             if reply == QMessageBox.Yes:
                 folderName = os.path.normpath(self.folderName)
@@ -733,9 +737,30 @@ class ChannelExtract(QMainWindow):
                 ]
                 run_commands_in_terminal(commands)
         else:
-            QMessageBox.information(
-                self, "No Files Exported", "No files have been exported."
-            )
+            brwFiles = [f for f in os.listdir(self.folderName) if f.endswith(".brw")]
+            exportChFiles = [f for f in brwFiles if f.__contains__("exportCh")]
+            files_string = "\n".join(exportChFiles)
+            if exportChFiles:
+                reply = QMessageBox.question(
+                    self,
+                    "Run Downsample Export",
+                    f"Do you want to run the downsample export on {len(exportChFiles)} previously exported files?\nFiles:\n{files_string}",
+                    QMessageBox.Yes | QMessageBox.No,
+                    QMessageBox.Yes,
+                )
+                if reply == QMessageBox.Yes:
+                    folderName = os.path.normpath(self.folderName)
+                    driveLetter = os.path.splitdrive(folderName)[0]
+
+                    commands = [
+                        f"cd {local_path}",
+                        f"py export_to_brw.py {driveLetter} {folderName}",
+                    ]
+                    run_commands_in_terminal(commands)
+            else:
+                QMessageBox.information(
+                    self, "No Files Exported", "No files have been exported."
+                )
 
     def openGUI(self):
         home_dir = os.path.expanduser("~")
