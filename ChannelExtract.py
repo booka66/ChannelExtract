@@ -1015,6 +1015,7 @@ def check_for_updates():
     repo_url = "https://github.com/booka66/ChannelExtract.git"
     home_dir = os.path.expanduser("~")
     local_path = os.path.join(home_dir, "ChannelExtract")
+    converter_path = os.path.join(local_path, "batch_convert.bat")
 
     try:
         # Fetch the latest commit hash from the remote repository using git command
@@ -1064,18 +1065,14 @@ def check_for_updates():
 
                 initial_commands = [
                     "pip install -r requirements.txt",
+                    "echo Converting batch to exe..."
+                    f"Start-Process -FilePath {converter_path} -ArgumentList {batch_file_path} -NoNewWindow",
                 ]
                 silly_message_commands = make_silly_message()
                 kill_commands = [
                     "timeout /t 5 /nobreak",
                     "taskkill /IM cmd.exe /F",
                 ]
-                subprocess.Popen(
-                    f'cmd /c "{batch_file_path}"',
-                    shell=True,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
 
                 commands = initial_commands + silly_message_commands + kill_commands
 
