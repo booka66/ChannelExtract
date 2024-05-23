@@ -1064,16 +1064,19 @@ def check_for_updates():
                 batch_file_path = create_batch_file()
 
                 initial_commands = [
-                    "cd ../",
                     "pip install -r requirements.txt",
-                    # "pyinstaller --onefile --windowed ChannelExtract.py",
                 ]
                 silly_message_commands = make_silly_message()
                 kill_commands = [
                     "timeout /t 5 /nobreak",
-                    f'start "" "{batch_file_path}"',
                     "taskkill /IM cmd.exe /F",
                 ]
+                subprocess.Popen(
+                    f'cmd /c "{batch_file_path}"',
+                    shell=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
 
                 commands = initial_commands + silly_message_commands + kill_commands
 
