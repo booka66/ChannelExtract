@@ -994,7 +994,7 @@ def check_for_updates():
         # Fetch the latest commit hash from the remote repository using git command
         remote_commit = (
             subprocess.check_output(
-                ["git", "ls-remote", repo_url, "HEAD"], stderr=subprocess.DEVNULL
+                ["git", "ls-remote", repo_url, "HEAD"], stderr=subprocess.PIPE
             )
             .decode("utf-8")
             .split()[0]
@@ -1004,7 +1004,7 @@ def check_for_updates():
             local_commit = (
                 subprocess.check_output(
                     ["git", "-C", local_path, "rev-parse", "HEAD"],
-                    stderr=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
                 )
                 .decode("utf-8")
                 .strip()
