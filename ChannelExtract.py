@@ -81,6 +81,10 @@ class ScatterPlot(QWidget):
         self.canvas.draw()
 
     def lasso_callback(self, verts):
+        if self.parent.inputFileName is None or not os.path.exists(
+            self.parent.inputFileName
+        ):
+            return
         path = Path(verts)
         if self.uploadedImage is not None:
             height, width, _ = self.uploadedImage.shape
@@ -502,6 +506,16 @@ class ChannelExtract(QMainWindow):
             False
         )
 
+        if self.inputGridWidget.selected_points:
+            self.inputGridWidget.selected_points = []
+            self.inputGridWidget.undo_stack.append(
+                self.inputGridWidget.selected_points.copy()
+            )
+            self.inputGridWidget.redo_stack.clear()
+            self.inputGridWidget.update_selected_points_plot()
+            self.inputGridWidget.canvas.draw()
+            self.updateChannelCount()
+
         self.outputGridWidget.ax.clear()
         self.outputGridWidget.canvas.draw()
 
@@ -564,7 +578,12 @@ class ChannelExtract(QMainWindow):
             self.inputGridWidget.canvas.draw()
 
     def exportChannels(self):
-        selectedPoints = self.inputGridWidget.selected_points
+        selectedPoints = None
+        try:
+            selectedPoints = self.inputGridWidget.selected_points
+        except Exception:
+            print("No points selected")
+            return
         if selectedPoints:
             chX = []
             chY = []
