@@ -704,7 +704,7 @@ class ChannelExtract(QMainWindow):
 
     def openGUI(self):
         commands = [
-            "cd ../../Jake-Squared/Python-GUI",
+            "cd ../Jake-Squared/Python-GUI",
             "py main.py",
         ]
         run_commands_in_terminal(commands)
