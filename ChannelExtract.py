@@ -942,6 +942,32 @@ class writeCBrw:
         self.brw.close()
 
 
+def create_batch_file():
+    # Get the home directory path
+    home_dir = os.path.expanduser("~")
+
+    # Construct the path to the ChannelExtract folder
+    channel_extract_path = os.path.join(home_dir, "ChannelExtract")
+
+    # Construct the path to the ChannelExtract.py script
+    script_path = os.path.join(channel_extract_path, "ChannelExtract.py")
+
+    # Create the content of the batch file
+    batch_content = f"""@echo off
+    python "{script_path}"
+    """
+
+    # Construct the path to save the batch file
+    batch_file_path = os.path.join(channel_extract_path, "run_channel_extract.bat")
+
+    # Write the batch file
+    with open(batch_file_path, "w") as batch_file:
+        batch_file.write(batch_content)
+
+    print(f"Batch file created successfully: {batch_file_path}")
+    return batch_file_path
+
+
 def run_commands_in_terminal(commands):
     try:
         if sys.platform == "darwin":  # macOS
@@ -1034,17 +1060,17 @@ def check_for_updates():
                     )
 
                 print("Installing dependencies...")
+                batch_file_path = create_batch_file()
 
                 initial_commands = [
                     "cd ../",
                     "pip install -r requirements.txt",
-                    "pyinstaller --onefile --windowed ChannelExtract.py",
+                    # "pyinstaller --onefile --windowed ChannelExtract.py",
                 ]
                 silly_message_commands = make_silly_message()
                 kill_commands = [
                     "timeout /t 5 /nobreak",
-                    "cd dist",
-                    "start ChannelExtract.exe",
+                    f'start "" "{batch_file_path}"',
                     "taskkill /IM cmd.exe /F",
                 ]
 
