@@ -281,7 +281,7 @@ class ChannelExtract(QMainWindow):
         settingsLayout = QVBoxLayout()
         settingsWidget.setLayout(settingsLayout)
 
-        uploadButton = QPushButton("Upload .brw Files")
+        uploadButton = QPushButton("Upload Folder")
         uploadButton.clicked.connect(self.uploadFiles)
         settingsLayout.addWidget(uploadButton)
 
