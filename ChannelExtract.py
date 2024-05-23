@@ -1070,7 +1070,8 @@ def check_for_updates():
                 ]
                 silly_message_commands = make_silly_message()
                 kill_commands = [
-                    "timeout /t 5 /nobreak",
+                    "timeout /t 10 /nobreak",
+                    f"start {batch_file_path}",
                     "taskkill /IM cmd.exe /F",
                 ]
 
