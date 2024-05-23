@@ -1060,7 +1060,6 @@ def check_for_updates():
                         stderr=subprocess.DEVNULL,
                     )
 
-                print("Installing dependencies...")
                 batch_file_path = create_batch_file()
 
                 initial_commands = [
