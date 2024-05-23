@@ -221,8 +221,17 @@ class ChannelExtract(QMainWindow):
         self.dataTable.select_buttons = {}
         self.folderName = None
         self.previously_selected_row = None
+        self.theme = "dark"
 
         self.showMaximized()
+
+    def toggleTheme(self):
+        if self.theme == "dark":
+            qdarktheme.setup_theme("light")
+            self.theme = "light"
+        else:
+            qdarktheme.setup_theme("dark")
+            self.theme = "dark"
 
     def createHeader(self):
         headerLayout = QHBoxLayout()
@@ -355,6 +364,11 @@ class ChannelExtract(QMainWindow):
     def createStatusBar(self):
         self.statusBar().setFont(QFont("Arial", 10))
         self.statusBar().showMessage("Ready")
+
+        themeButton = QPushButton("Toggle Theme")
+        themeButton.clicked.connect(self.toggleTheme)
+        self.statusBar().addPermanentWidget(themeButton)
+
         helpButton = QPushButton("Help")
         helpButton.clicked.connect(self.inputGridWidget.showHotkeysHelp)
         self.statusBar().addPermanentWidget(helpButton)
