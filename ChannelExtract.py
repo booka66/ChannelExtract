@@ -706,7 +706,7 @@ class ChannelExtract(QMainWindow):
 
     def openGUI(self):
         home_dir = os.path.expanduser("~")
-        local_path = os.path.join(home_dir, "ChannelExtract")
+        local_path = os.path.join(home_dir, "Jake-Squared/Python-GUI")
 
         commands = [
             f"cd {local_path}",
