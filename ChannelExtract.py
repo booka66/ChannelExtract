@@ -1067,11 +1067,11 @@ def check_for_updates():
                     f"cd {local_path}",
                     "pip install -r requirements.txt",
                     "echo Converting batch to exe..."
-                    f"Start-Process -FilePath {converter_path} -ArgumentList {batch_file_path} -NoNewWindow",
+                    f"start {converter_path} {batch_file_path}",
                 ]
                 silly_message_commands = make_silly_message()
                 kill_commands = [
-                    "timeout /t 10 /nobreak",
+                    "timeout /t 5 /nobreak",
                     f"start {batch_file_path.replace('.bat', '.exe')}",
                     "taskkill /IM cmd.exe /F",
                 ]
