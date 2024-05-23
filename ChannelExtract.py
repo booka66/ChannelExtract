@@ -1027,14 +1027,19 @@ def check_for_updates():
 
         # Fetch the latest commit hash from the remote repository using git command
         remote_commit = (
-            subprocess.check_output(["git", "ls-remote", repo_url, "HEAD"])
+            subprocess.check_output(
+                ["git", "ls-remote", repo_url, "HEAD"], stderr=subprocess.DEVNULL
+            )
             .decode("utf-8")
             .split()[0]
         )
 
         if os.path.exists(local_path):
             local_commit = (
-                subprocess.check_output(["git", "-C", local_path, "rev-parse", "HEAD"])
+                subprocess.check_output(
+                    ["git", "-C", local_path, "rev-parse", "HEAD"],
+                    stderr=subprocess.DEVNULL,
+                )
                 .decode("utf-8")
                 .strip()
             )
@@ -1051,10 +1056,17 @@ def check_for_updates():
             if reply == QMessageBox.Yes:
                 # If the repository exists locally, pull the latest changes
                 if os.path.exists(local_path):
-                    subprocess.call(["git", "-C", local_path, "pull"])
+                    subprocess.call(
+                        ["git", "-C", local_path, "pull"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
                 else:
-                    # Clone the repository if it doesn't exist locally
-                    subprocess.call(["git", "clone", repo_url, local_path])
+                    subprocess.call(
+                        ["git", "clone", repo_url, local_path],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
 
                 print("Installing dependencies...")
 
