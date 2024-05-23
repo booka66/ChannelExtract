@@ -985,46 +985,12 @@ def make_silly_message():
     return output
 
 
-def show_commit_summary(local_path):
-    try:
-        commit_summary = (
-            subprocess.check_output(
-                ["git", "-C", local_path, "log", "-1", "--pretty=%s"]
-            )
-            .decode("utf-8")
-            .strip()
-        )
-        commit_description = (
-            subprocess.check_output(
-                ["git", "-C", local_path, "log", "-1", "--pretty=%b"]
-            )
-            .decode("utf-8")
-            .strip()
-        )
-
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Information)
-        msg.setText(
-            f"Commit Summary:\n{commit_summary}\n\nCommit Description:\n{commit_description}"
-        )
-        msg.setWindowTitle("Commit Details")
-        msg.setStandardButtons(QMessageBox.Close)
-        msg.exec_()
-    except subprocess.CalledProcessError as e:
-        print(f"Error occurred while retrieving commit details: {str(e)}")
-
-
 def check_for_updates():
     repo_url = "https://github.com/booka66/ChannelExtract.git"
     home_dir = os.path.expanduser("~")
     local_path = os.path.join(home_dir, "ChannelExtract")
 
     try:
-        try:
-            subprocess.check_output(["git", "--version"])
-        except subprocess.CalledProcessError:
-            raise Exception("Git is not installed")
-
         # Fetch the latest commit hash from the remote repository using git command
         remote_commit = (
             subprocess.check_output(
@@ -1086,7 +1052,6 @@ def check_for_updates():
                 commands = initial_commands + silly_message_commands + kill_commands
 
                 run_commands_in_terminal(commands)
-                show_commit_summary(local_path)
                 sys.exit()
 
     except subprocess.CalledProcessError as e:
