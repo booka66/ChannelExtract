@@ -33,6 +33,7 @@ from matplotlib.widgets import LassoSelector
 from matplotlib.path import Path
 import matplotlib.image as mpimg
 import subprocess
+import qdarktheme
 
 
 class ScatterPlot(QWidget):
@@ -1115,8 +1116,8 @@ def check_for_updates():
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    qdarktheme.setup_theme()
     window = ChannelExtract()
-
     check_for_updates()
 
     sys.exit(app.exec_())
