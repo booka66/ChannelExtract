@@ -959,7 +959,7 @@ def create_batch_file():
     """
 
     # Construct the path to save the batch file
-    batch_file_path = os.path.join(channel_extract_path, "run_channel_extract.bat")
+    batch_file_path = os.path.join(channel_extract_path, "ChannelExtract.bat")
 
     # Write the batch file
     with open(batch_file_path, "w") as batch_file:
@@ -1064,7 +1064,7 @@ def check_for_updates():
                 batch_file_path = create_batch_file()
 
                 initial_commands = [
-                    "pwd",
+                    f"cd {local_path}",
                     "pip install -r requirements.txt",
                     "echo Converting batch to exe..."
                     f"Start-Process -FilePath {converter_path} -ArgumentList {batch_file_path} -NoNewWindow",
@@ -1072,7 +1072,7 @@ def check_for_updates():
                 silly_message_commands = make_silly_message()
                 kill_commands = [
                     "timeout /t 10 /nobreak",
-                    f"start {batch_file_path}",
+                    f"start {batch_file_path.replace('.bat', '.exe')}",
                     "taskkill /IM cmd.exe /F",
                 ]
 
