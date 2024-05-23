@@ -321,8 +321,6 @@ class ChannelExtract(QMainWindow):
         settingsLayout.addWidget(endTimeLabel)
         settingsLayout.addWidget(self.endTimeSpinBox)
 
-        settingsLayout.addStretch()
-
         exportButton = QPushButton("Export Channels")
         exportButton.clicked.connect(self.exportChannels)
         settingsLayout.addWidget(exportButton)
@@ -331,9 +329,11 @@ class ChannelExtract(QMainWindow):
         downsampleExportButton.clicked.connect(self.runDownsampleExport)
         settingsLayout.addWidget(downsampleExportButton)
 
-        openGUIButton = QPushButton("Open in MEA GUI")
+        openGUIButton = QPushButton("Open MEA GUI")
         openGUIButton.clicked.connect(self.openGUI)
         settingsLayout.addWidget(openGUIButton)
+
+        settingsLayout.addStretch()
 
         gridLayout.addWidget(settingsWidget, 0, 1)
 
