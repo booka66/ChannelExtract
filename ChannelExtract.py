@@ -692,9 +692,7 @@ class ChannelExtract(QMainWindow):
                 driveLetter = os.path.splitdrive(folderName)[0]
 
                 commands = [
-                    "cd ../",
                     f"py export_to_brw.py {driveLetter} {folderName}",
-                    "cd dist",
                 ]
                 run_commands_in_terminal(commands)
         else:
