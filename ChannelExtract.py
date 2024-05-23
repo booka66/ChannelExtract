@@ -134,11 +134,13 @@ class ScatterPlot(QWidget):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_C:
             self.clear_selection()
+            self.parent.updateChannelCount()
         elif event.key() == Qt.Key_Z:
             if event.modifiers() & Qt.ShiftModifier:
                 self.redo_selection()
             else:
                 self.undo_selection()
+            self.parent.updateChannelCount()
 
     def clear_selection(self):
         if self.lasso.active:
