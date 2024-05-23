@@ -33,6 +33,7 @@ from matplotlib.widgets import LassoSelector
 from matplotlib.path import Path
 import matplotlib.image as mpimg
 import subprocess
+import qdarktheme
 
 
 class ScatterPlot(QWidget):
@@ -351,7 +352,6 @@ class ChannelExtract(QMainWindow):
         self.statusBar().setFont(QFont("Arial", 10))
         self.statusBar().showMessage("Ready")
         helpButton = QPushButton("Help")
-        helpButton.setFixedSize(30, 30)
         helpButton.clicked.connect(self.inputGridWidget.showHotkeysHelp)
         self.statusBar().addPermanentWidget(helpButton)
 
@@ -455,7 +455,7 @@ class ChannelExtract(QMainWindow):
                         parameters["nRecFrames"],
                         round(parameters["nRecFrames"] / parameters["samplingRate"]),
                         parameters["samplingRate"],
-                        "Not Started",
+                        "Not Exported",
                         QPushButton("Select"),
                     ]
                 )
@@ -476,7 +476,7 @@ class ChannelExtract(QMainWindow):
                     table_item.setFlags(table_item.flags() & ~Qt.ItemIsEditable)
                     table_item.setTextAlignment(Qt.AlignCenter)
                     if j == len(row) - 2:
-                        table_item.setBackground(QColor("#f8d7da"))
+                        table_item.setBackground(QColor("#bc4749"))
                     self.dataTable.setItem(i, j, table_item)
 
         self.dataTable.resizeColumnsToContents()
@@ -658,7 +658,7 @@ class ChannelExtract(QMainWindow):
             if selected_row >= 0:
                 status_item = self.dataTable.item(selected_row, 8)
                 status_item.setText("Exported")
-                status_item.setBackground(QColor("#d4edda"))
+                status_item.setBackground(QColor("#386641"))
 
                 select_button = self.dataTable.cellWidget(selected_row, 9)
                 select_button.setText("Redo")
@@ -1090,7 +1090,7 @@ def check_for_updates():
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setStyle("Fusion")
+    qdarktheme.setup_theme()
     window = ChannelExtract()
 
     check_for_updates()
