@@ -193,7 +193,7 @@ class ScatterPlot(QWidget):
 class ChannelExtract(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Channel Selection GUI")
+        self.setWindowTitle("Channel Selection TEST")
         self.resize(1200, 800)
 
         # Create main widget and layout
@@ -223,7 +223,7 @@ class ChannelExtract(QMainWindow):
     def createHeader(self):
         headerLayout = QHBoxLayout()
         # Add application title
-        self.headerLabel = QLabel("Channel Selection GUI")
+        self.headerLabel = QLabel("Channel Selection TEST")
         self.headerLabel.setFont(QFont("Arial", 16, QFont.Bold))
         self.headerLabel.setAlignment(Qt.AlignCenter)
         headerLayout.addWidget(self.headerLabel)
