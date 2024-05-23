@@ -57,13 +57,13 @@ class ScatterPlot(QWidget):
         layout.addWidget(self.canvas)
 
         self.ax = fig.add_subplot(111)
-        self.ax.set_aspect("equal")
+        self.ax.set_aspect("equal")  # Set the aspect ratio to be equal
+
         self.x = np.arange(1, 65)
         self.y = np.arange(1, 65)
         self.x, self.y = np.meshgrid(self.x, self.y)
         self.x = self.x.flatten()
         self.y = self.y.flatten()
-        self.updateDotSize()
 
         self.ax.scatter(self.x, self.y, c="k", s=10, alpha=0.5)
 
@@ -79,10 +79,6 @@ class ScatterPlot(QWidget):
         self.ax.invert_yaxis()  # Invert the y-axis
 
         self.canvas.draw()
-
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        self.updateDotSize()
 
     def lasso_callback(self, verts):
         path = Path(verts)
@@ -115,7 +111,25 @@ class ScatterPlot(QWidget):
         self.parent.updateChannelCount()
 
     def update_selected_points_plot(self):
-        self.updateDotSize()
+        if hasattr(self, "selected_points_plot"):
+            self.selected_points_plot.remove()
+        if self.uploadedImage is not None:
+            height, width, _ = self.uploadedImage.shape
+            self.selected_points_plot = self.ax.scatter(
+                [point[0] * width / 64 for point in self.selected_points],
+                [point[1] * height / 64 for point in self.selected_points],
+                c="red",
+                s=10,
+                alpha=0.8,
+            )
+        else:
+            self.selected_points_plot = self.ax.scatter(
+                [point[0] for point in self.selected_points],
+                [point[1] for point in self.selected_points],
+                c="red",
+                s=10,
+                alpha=0.8,
+            )
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_C:
@@ -174,54 +188,6 @@ class ScatterPlot(QWidget):
             "shift+z: Redo",
         ]
         QMessageBox.information(self, "Plot Hotkeys", "\n".join(hotkeys))
-
-    def updateDotSize(self):
-        grid_size = min(self.width(), self.height())
-        dot_size = max(1, int(grid_size / 100))
-        self.ax.clear()
-        if self.uploadedImage is not None:
-            height, width, _ = self.uploadedImage.shape
-            aspect_ratio = width / height
-            self.ax.set_aspect(aspect_ratio)
-            self.ax.imshow(self.uploadedImage, extent=[0, width, height, 0])
-            self.ax.scatter(
-                [x * width / 64 for x in self.x],
-                [y * height / 64 for y in self.y],
-                c="k",
-                s=dot_size,
-                alpha=0.5,
-            )
-            if hasattr(self, "selected_points_plot"):
-                self.selected_points_plot.remove()
-            if self.selected_points:
-                self.selected_points_plot = self.ax.scatter(
-                    [point[0] * width / 64 for point in self.selected_points],
-                    [point[1] * height / 64 for point in self.selected_points],
-                    c="red",
-                    s=dot_size,
-                    alpha=0.8,
-                )
-            self.ax.set_xlim(0, width)
-            self.ax.set_ylim(height, 0)
-        else:
-            self.ax.set_aspect("equal")
-            self.ax.scatter(self.x, self.y, c="k", s=dot_size, alpha=0.5)
-            if hasattr(self, "selected_points_plot"):
-                self.selected_points_plot.remove()
-            if self.selected_points:
-                self.selected_points_plot = self.ax.scatter(
-                    [point[0] for point in self.selected_points],
-                    [point[1] for point in self.selected_points],
-                    c="red",
-                    s=dot_size,
-                    alpha=0.8,
-                )
-            self.ax.set_xlim(self.size[0], self.size[2])
-            self.ax.set_ylim(self.size[2], self.size[3])
-        self.ax.set_xticks([])
-        self.ax.set_yticks([])
-        self.ax.invert_yaxis()
-        self.canvas.draw()
 
 
 class ChannelExtract(QMainWindow):
