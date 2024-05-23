@@ -51,6 +51,8 @@ class ScatterPlot(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
+        if self.yoMamma = "fat":
+
         fig = Figure(figsize=(5, 5), dpi=100)
         fig.set_tight_layout(True)
         self.canvas = FigureCanvas(fig)
