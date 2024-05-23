@@ -1064,7 +1064,7 @@ def check_for_updates():
                 batch_file_path = create_batch_file()
 
                 initial_commands = [
-                    "pip install -r requirements.txt",
+                    "pwd" "pip install -r requirements.txt",
                     "echo Converting batch to exe..."
                     f"Start-Process -FilePath {converter_path} -ArgumentList {batch_file_path} -NoNewWindow",
                 ]
