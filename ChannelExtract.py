@@ -1179,33 +1179,9 @@ def check_for_updates():
 
 
 if __name__ == "__main__":
-    try:
-        app = QApplication(sys.argv)
-        qdarktheme.setup_theme()
-        window = ChannelExtract()
-        check_for_updates()
+    app = QApplication(sys.argv)
+    qdarktheme.setup_theme()
+    window = ChannelExtract()
+    check_for_updates()
 
-        sys.exit(app.exec_())
-    except Exception as e:
-        error_message = f"Error occurred: {str(e)}"
-        print(error_message)
-        repo_url = "https://github.com/booka66/ChannelExtract.git"
-        home_dir = os.path.expanduser("~")
-        local_path = os.path.join(home_dir, "ChannelExtract")
-
-        if os.path.exists(local_path):
-            subprocess.call(
-                ["git", "-C", local_path, "pull"],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-        else:
-            subprocess.call(
-                ["git", "clone", repo_url, local_path],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-
-        batch_file_path = create_batch_file()
-        run_commands_in_terminal([f"start {batch_file_path}"])
-        sys.exit()
+    sys.exit(app.exec_())
