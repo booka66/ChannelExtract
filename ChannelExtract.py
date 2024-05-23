@@ -1082,7 +1082,7 @@ def check_for_updates():
     except subprocess.CalledProcessError as e:
         error_message = f"Error occurred during update check: {str(e)}"
         print(error_message)
-        QMessageBox.critical(None, "Update Error", error_message)
+        QMessageBox.critical(None, "Update Error Womp Womp", error_message)
     except Exception as e:
         error_message = f"Error occurred during update check: {str(e)}"
         print(error_message)
