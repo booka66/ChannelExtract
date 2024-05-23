@@ -667,6 +667,9 @@ class ChannelExtract(QMainWindow):
             self.statusBar().showMessage("Channels exported successfully")
 
     def runDownsampleExport(self):
+        home_dir = os.path.expanduser("~")
+        local_path = os.path.join(home_dir, "ChannelExtract")
+
         if not self.folderName:
             QMessageBox.information(
                 self, "No Folder Uploaded", "Please upload a folder first."
@@ -692,6 +695,7 @@ class ChannelExtract(QMainWindow):
                 driveLetter = os.path.splitdrive(folderName)[0]
 
                 commands = [
+                    f"cd {local_path}",
                     f"py export_to_brw.py {driveLetter} {folderName}",
                 ]
                 run_commands_in_terminal(commands)
@@ -701,8 +705,11 @@ class ChannelExtract(QMainWindow):
             )
 
     def openGUI(self):
+        home_dir = os.path.expanduser("~")
+        local_path = os.path.join(home_dir, "ChannelExtract")
+
         commands = [
-            "cd ../Jake-Squared/Python-GUI",
+            f"cd {local_path}",
             "py main.py",
         ]
         run_commands_in_terminal(commands)
