@@ -1081,7 +1081,6 @@ def check_for_updates():
     converter_path = os.path.join(local_path, "batch_convert.bat")
 
     try:
-        # Fetch the latest commit hash from the remote repository using git command
         remote_commit = (
             subprocess.check_output(
                 ["git", "ls-remote", repo_url, "HEAD"], stderr=subprocess.PIPE
@@ -1110,7 +1109,6 @@ def check_for_updates():
                 QMessageBox.Yes | QMessageBox.No,
             )
             if reply == QMessageBox.Yes:
-                # If the repository exists locally, pull the latest changes
                 if os.path.exists(local_path):
                     subprocess.call(
                         ["git", "-C", local_path, "pull"],
@@ -1152,30 +1150,6 @@ def check_for_updates():
         error_message = f"Error occurred during update check: {str(e)}"
         print(error_message)
         QMessageBox.critical(None, "Update Error Womp Womp", error_message)
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Question)
-        msg.setText("Click Yes to force download the latest version of ChannelExtract")
-        msg.setWindowTitle("Update Available")
-        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        msg.setDefaultButton(QMessageBox.Yes)
-        result = msg.exec_()
-        if result == QMessageBox.Yes:
-            commands = [
-                "cd ../",
-                "pip install -r requirements.txt",
-                "pyinstaller --onefile --windowed ChannelExtract.py",
-                "echo.",
-                "echo *************************************************************************************",
-                "echo Update complete! Imma go ahead and restart the application for you. xoxo - Love, Jake",
-                "echo *************************************************************************************",
-                "echo.",
-                "timeout /t 5 /nobreak",
-                "cd dist",
-                "start ChannelExtract.exe",
-                "taskkill /IM cmd.exe /F",
-            ]
-            run_commands_in_terminal(commands)
-            sys.exit()
 
 
 if __name__ == "__main__":
