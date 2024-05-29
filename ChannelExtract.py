@@ -1007,24 +1007,18 @@ class writeCBrw:
 
 
 def create_batch_file():
-    # Get the home directory path
     home_dir = os.path.expanduser("~")
 
-    # Construct the path to the ChannelExtract folder
     channel_extract_path = os.path.join(home_dir, "ChannelExtract")
 
-    # Construct the path to the ChannelExtract.py script
     script_path = os.path.join(channel_extract_path, "ChannelExtract.py")
 
-    # Create the content of the batch file
     batch_content = f"""@echo off
     python "{script_path}"
     """
 
-    # Construct the path to save the batch file
     batch_file_path = os.path.join(channel_extract_path, "ChannelExtract.bat")
 
-    # Write the batch file
     with open(batch_file_path, "w") as batch_file:
         batch_file.write(batch_content)
 
@@ -1074,7 +1068,35 @@ def make_silly_message():
     return output
 
 
+def update_MEA_GUI():
+    print("Updating MEA GUI...")
+    repo_url = "https://github.com/jhnorby/Jake-Squared.git"
+    home_dir = os.path.expanduser("~")
+    local_path = os.path.join(home_dir, "Jake-Squared")
+
+    try:
+        # Don't check the hashes, just pull the latest changes
+        if os.path.exists(local_path):
+            subprocess.call(
+                ["git", "-C", local_path, "pull"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        else:
+            subprocess.call(
+                ["git", "clone", repo_url, local_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        print("MEA GUI update complete.")
+    except subprocess.CalledProcessError as e:
+        error_message = f"Error occurred during MEA GUI update: {str(e)}"
+        print(error_message)
+        QMessageBox.critical(None, "Update Error Womp Womp", error_message)
+
+
 def check_for_updates():
+    update_MEA_GUI()
     repo_url = "https://github.com/booka66/ChannelExtract.git"
     home_dir = os.path.expanduser("~")
     local_path = os.path.join(home_dir, "ChannelExtract")
