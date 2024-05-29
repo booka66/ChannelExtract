@@ -1071,7 +1071,12 @@ def make_silly_message():
 def update_MEA_GUI():
     print("Updating MEA GUI...")
     repo_url = "https://github.com/jhnorby/Jake-Squared.git"
-    home_dir = os.path.expanduser("~")
+
+    if os.path.exists("E:"):
+        home_dir = "E:"
+    else:
+        home_dir = os.path.expanduser("~")
+
     local_path = os.path.join(home_dir, "Jake-Squared")
 
     try:
@@ -1098,7 +1103,13 @@ def update_MEA_GUI():
 def check_for_updates():
     update_MEA_GUI()
     repo_url = "https://github.com/booka66/ChannelExtract.git"
-    home_dir = os.path.expanduser("~")
+
+    # Check if E: drive exists
+    if os.path.exists("E:"):
+        home_dir = "E:"
+    else:
+        home_dir = os.path.expanduser("~")
+
     local_path = os.path.join(home_dir, "ChannelExtract")
     converter_path = os.path.join(local_path, "batch_convert.bat")
 
@@ -1130,6 +1141,7 @@ def check_for_updates():
                 "A new version is available. Do you want to update?",
                 QMessageBox.Yes | QMessageBox.No,
             )
+
             if reply == QMessageBox.Yes:
                 if os.path.exists(local_path):
                     subprocess.call(
@@ -1145,11 +1157,10 @@ def check_for_updates():
                     )
 
                 batch_file_path = create_batch_file()
-
                 initial_commands = [
                     f"cd {local_path}",
                     "pip install -r requirements.txt",
-                    "echo Converting batch to exe..."
+                    "echo Converting batch to exe...",
                     f"start {converter_path} {batch_file_path}",
                 ]
                 silly_message_commands = make_silly_message()
@@ -1158,12 +1169,9 @@ def check_for_updates():
                     f"start {batch_file_path}",
                     "taskkill /IM cmd.exe /F",
                 ]
-
                 commands = initial_commands + silly_message_commands + kill_commands
-
                 run_commands_in_terminal(commands)
                 sys.exit()
-
     except subprocess.CalledProcessError as e:
         error_message = f"Error occurred during update check: {str(e)}"
         print(error_message)
