@@ -1,6 +1,7 @@
 import math
 from multiprocessing import Pool
 import sys
+from alert import alert
 
 import pywt
 
@@ -859,18 +860,23 @@ def run(drive_letter, folder):
 
 
 if __name__ == "__main__":
-    drive_letter = sys.argv[1]
-    folder = ""
-    if len(sys.argv) > 2:
-        for arg in sys.argv[2:]:
-            folder += arg + " "
-    folder = folder.strip()
-    os.path.normpath(folder)
-    print(
-        "Exporting the channel bois from the folder: ",
-        folder,
-        " in drive: ",
-        drive_letter,
-        "\n",
-    )
-    run(drive_letter, folder)
+    try:
+        drive_letter = sys.argv[1]
+        folder = ""
+        if len(sys.argv) > 2:
+            for arg in sys.argv[2:]:
+                folder += arg + " "
+        folder = folder.strip()
+        os.path.normpath(folder)
+        print(
+            "Exporting the channel bois from the folder: ",
+            folder,
+            " in drive: ",
+            drive_letter,
+            "\n",
+        )
+        run(drive_letter, folder)
+        alert("Downsample completed!")
+    except Exception as e:
+        print("Error: ", e)
+        alert("Downsample failed!")
