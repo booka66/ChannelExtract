@@ -36,6 +36,10 @@ import subprocess
 import qdarktheme
 
 
+SIZE = 30
+MARKER = "s"
+
+
 class ScatterPlot(QWidget):
     def __init__(self, parent=None, uploadedImage=None):
         super().__init__(parent)
@@ -65,7 +69,7 @@ class ScatterPlot(QWidget):
         self.x = self.x.flatten()
         self.y = self.y.flatten()
 
-        self.ax.scatter(self.x, self.y, c="k", s=10, alpha=0.5)
+        self.ax.scatter(self.x, self.y, c="k", s=SIZE, alpha=0.3, marker=MARKER)
 
         self.lasso = LassoSelector(
             self.ax,
@@ -123,16 +127,18 @@ class ScatterPlot(QWidget):
                 [point[0] * width / 64 for point in self.selected_points],
                 [point[1] * height / 64 for point in self.selected_points],
                 c="red",
-                s=10,
+                s=SIZE,
                 alpha=0.8,
+                marker=MARKER,
             )
         else:
             self.selected_points_plot = self.ax.scatter(
                 [point[0] for point in self.selected_points],
                 [point[1] for point in self.selected_points],
                 c="red",
-                s=10,
+                s=SIZE,
                 alpha=0.8,
+                marker=MARKER,
             )
 
     def keyPressEvent(self, event):
@@ -574,7 +580,9 @@ class ChannelExtract(QMainWindow):
                 self.inputGridWidget.ax.set_xlim(self.size[0], self.size[2])
                 self.inputGridWidget.ax.set_ylim(self.size[2], self.size[3])
 
-            self.inputGridWidget.ax.scatter(Xs, Ys, c="k", s=10, alpha=0.5)
+            self.inputGridWidget.ax.scatter(
+                Xs, Ys, c="k", s=SIZE, alpha=0.3, marker=MARKER
+            )
             self.inputGridWidget.ax.set_xticks([])
             self.inputGridWidget.ax.set_yticks([])
             self.inputGridWidget.ax.invert_yaxis()
@@ -646,11 +654,13 @@ class ChannelExtract(QMainWindow):
                 self.outputGridWidget.ax.set_ylim(self.size[2], self.size[3])
 
             # Plot the gray dots
-            self.outputGridWidget.ax.scatter(xs, ys, c="grey", s=5, alpha=0.1)
+            self.outputGridWidget.ax.scatter(
+                xs, ys, c="grey", s=SIZE, alpha=0.1, marker=MARKER
+            )
 
             # Plot the red dots on top with a higher zorder
             self.outputGridWidget.ax.scatter(
-                chX, chY, c="red", s=10, alpha=0.8, zorder=10
+                chX, chY, c="red", s=SIZE, alpha=0.8, zorder=10, marker=MARKER
             )
 
             self.outputGridWidget.ax.set_xticks([])
