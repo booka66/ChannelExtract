@@ -613,13 +613,15 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     ind = np.lexsort((newChs["Col"], newChs["Row"]))
     newChs = newChs[ind]
     idx_a = ind_rec.copy()
+    print(idx_a)
+    data = BrwFile.Open(recfileName)
 
     s = time.time()
     nrecFrame = 0
+    raw = []
 
-    chunk_size = 100  # Adjust this value based on available memory
     with Pool() as pool:
-        args_iter = (
+        args = [
             (
                 i,
                 recfileName,
@@ -632,29 +634,33 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
                 chfileInfo,
             )
             for i in ind_rec
+        ]
+        results = list(
+            tqdm(
+                pool.imap(extract_channel, args),
+                total=len(args),
+                desc="Extracting channels",
+            )
         )
 
-        for results in pool.imap_unordered(
-            extract_channel, args_iter, chunksize=chunk_size
-        ):
-            downsampled_channel_data = results
-            nrecFrame = len(downsampled_channel_data)
-            raw = downsampled_channel_data[:]
+    for downsampled_channel_data in results:
+        nrecFrame = len(downsampled_channel_data)
+        raw.append(downsampled_channel_data[:])
 
-            original_sampling_rate = parameters["samplingRate"]
-            desired_sampling_rate = chfileInfo["newSampling"]
-            downsample_factor = math.floor(
-                original_sampling_rate / desired_sampling_rate
-            )
-            new_sampling_rate = original_sampling_rate / downsample_factor
+    original_sampling_rate = parameters["samplingRate"]
+    desired_sampling_rate = chfileInfo["newSampling"]
+    downsample_factor = math.floor(original_sampling_rate / desired_sampling_rate)
+    new_sampling_rate = original_sampling_rate / downsample_factor
+    print(f"Mine: {new_sampling_rate}")
+    print(f"Original: {fs}")
 
-            dset.appendBrw(output_path, nrecFrame, raw[ind, :])
-
+    raw = np.array(raw)
+    dset.writeRaw(raw[ind, :], typeFlatten="F")
     dset.writeSamplingFreq(new_sampling_rate)
     dset.witeFrames(nrecFrame)
     dset.writeChs(newChs)
     dset.close()
-
+    data.Close()
     return time.time() - s, output_path
 
 
