@@ -619,7 +619,7 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     s = time.time()
     nrecFrame = 0
 
-    processed_data = [None] * len(ind_rec)
+    processed_data = {}
 
     with Pool() as pool:
         for i, downsampled_channel_data in enumerate(
@@ -646,10 +646,10 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
             )
         ):
             nrecFrame = len(downsampled_channel_data)
-            processed_data[ind_rec[i]] = downsampled_channel_data
+            processed_data[i] = downsampled_channel_data
 
-    processed_data = np.array(processed_data)
-    dset.writeRaw(processed_data[ind, :], typeFlatten="F")
+    sorted_data = np.array([processed_data[i] for i in ind_rec])
+    dset.writeRaw(sorted_data[ind, :], typeFlatten="F")
 
     original_sampling_rate = parameters["samplingRate"]
     desired_sampling_rate = chfileInfo["newSampling"]
