@@ -1082,10 +1082,7 @@ def update_MEA_GUI():
     print("Updating MEA GUI...")
     repo_url = "https://github.com/jhnorby/Jake-Squared.git"
 
-    if os.path.exists("E:"):
-        home_dir = "E:"
-    else:
-        home_dir = os.path.expanduser("~")
+    home_dir = os.path.expanduser("~")
 
     local_path = os.path.join(home_dir, "Jake-Squared")
 
@@ -1115,10 +1112,7 @@ def check_for_updates():
     repo_url = "https://github.com/booka66/ChannelExtract.git"
 
     # Check if E: drive exists
-    if os.path.exists("E:"):
-        home_dir = "E:"
-    else:
-        home_dir = os.path.expanduser("~")
+    home_dir = os.path.expanduser("~")
 
     local_path = os.path.join(home_dir, "ChannelExtract")
     converter_path = os.path.join(local_path, "batch_convert.bat")

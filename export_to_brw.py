@@ -618,34 +618,38 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
 
     s = time.time()
     nrecFrame = 0
-    raw = []
+
+    processed_data = [None] * len(ind_rec)
 
     with Pool() as pool:
-        args = [
-            (
-                i,
-                recfileName,
-                samplingRate,
-                nChannels,
-                coefsTotalLength,
-                compressionLevel,
-                framesChunkLength,
-                coefsChunkLength,
-                chfileInfo,
-            )
-            for i in ind_rec
-        ]
-        results = list(
+        for i, downsampled_channel_data in enumerate(
             tqdm(
-                pool.imap(extract_channel, args),
-                total=len(args),
+                pool.imap(
+                    extract_channel,
+                    [
+                        (
+                            i,
+                            recfileName,
+                            samplingRate,
+                            nChannels,
+                            coefsTotalLength,
+                            compressionLevel,
+                            framesChunkLength,
+                            coefsChunkLength,
+                            chfileInfo,
+                        )
+                        for i in ind_rec
+                    ],
+                ),
+                total=len(ind_rec),
                 desc="Extracting channels",
             )
-        )
+        ):
+            nrecFrame = len(downsampled_channel_data)
+            processed_data[ind_rec[i]] = downsampled_channel_data
 
-    for downsampled_channel_data in results:
-        nrecFrame = len(downsampled_channel_data)
-        raw.append(downsampled_channel_data[:])
+    processed_data = np.array(processed_data)
+    dset.writeRaw(processed_data[ind, :], typeFlatten="F")
 
     original_sampling_rate = parameters["samplingRate"]
     desired_sampling_rate = chfileInfo["newSampling"]
@@ -654,13 +658,12 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     print(f"Mine: {new_sampling_rate}")
     print(f"Original: {fs}")
 
-    raw = np.array(raw)
-    dset.writeRaw(raw[ind, :], typeFlatten="F")
     dset.writeSamplingFreq(new_sampling_rate)
     dset.witeFrames(nrecFrame)
     dset.writeChs(newChs)
     dset.close()
     data.Close()
+
     return time.time() - s, output_path
 
 
