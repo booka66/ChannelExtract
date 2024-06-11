@@ -565,13 +565,7 @@ def extract_channel(args):
     downsample_factor = math.floor(original_sampling_rate / desired_sampling_rate)
     new_sampling_rate = original_sampling_rate / downsample_factor
     downsampled_channel_data = channel_data[::downsample_factor]
-
-    # Write the processed channel data to a temporary file
-    temp_file_name = f"channel_{i}.h5"
-    with h5py.File(temp_file_name, "w") as temp_file:
-        temp_file.create_dataset("data", data=downsampled_channel_data)
-
-    return temp_file_name
+    return downsampled_channel_data
 
 
 def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
@@ -641,7 +635,7 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     ]
 
     with Pool() as pool:
-        temp_file_names = list(
+        results = list(
             tqdm(
                 pool.map(extract_channel, args),
                 total=len(args),
@@ -657,75 +651,25 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     print(f"Original: {fs}")
 
     chunk_size = 100000  # Adjust the chunk size as needed
+    nrecFrame = len(results[0])
 
-    with h5py.File(temp_file_names[0], "r") as temp_file:
-        nrecFrame = len(temp_file["data"])
+    for i in range(0, nrecFrame, chunk_size):
+        start = i
+        end = min(i + chunk_size, nrecFrame)
 
-    max_retries = 3
-    retry_delay = 1  # Delay in seconds between retries
+        raw_chunk = [results[j][start:end] for j in range(len(results))]
+        raw_chunk = np.array(raw_chunk)
 
-    try:
-        for retry in range(max_retries):
-            try:
-                # Open the output file in exclusive mode
-                with h5py.File(output_path, "w", libver="latest") as output_file:
-                    well_group = output_file.create_group("Well_A1")
-                    well_group.attrs["SamplingRate"] = new_sampling_rate
-                    well_group.attrs["StoredChIdxs"] = np.arange(len(newChs))
-
-                    raw_dataset = well_group.create_dataset(
-                        "Raw",
-                        shape=(nrecFrame, len(newChs)),
-                        dtype=np.float32,
-                        chunks=(chunk_size, len(newChs)),
-                    )
-
-                    for i in range(0, nrecFrame, chunk_size):
-                        start = i
-                        end = min(i + chunk_size, nrecFrame)
-
-                        raw_chunk = []
-                        for temp_file_name in temp_file_names:
-                            with h5py.File(temp_file_name, "r") as temp_file:
-                                raw_chunk.append(temp_file["data"][start:end])
-                        raw_chunk = np.array(raw_chunk)
-
-                        raw_dataset[start:end] = raw_chunk.T
-
-                    output_file.flush()  # Flush the file to ensure data is written
-
-                break  # Break out of the retry loop if successful
-
-            except OSError as e:
-                if "unable to truncate a file which is already open" in str(e):
-                    print(
-                        f"Retrying ({retry + 1}/{max_retries}) after {retry_delay} seconds..."
-                    )
-                    time.sleep(retry_delay)
-                else:
-                    print(f"Error occurred while writing to the output file: {str(e)}")
-                    raise
-
+        if i == 0:
+            dset.writeRaw(raw_chunk, typeFlatten="F")
+            dset.writeSamplingFreq(new_sampling_rate)
+            dset.witeFrames(nrecFrame)
+            dset.writeChs(newChs)
         else:
-            # If all retries are exhausted, raise an exception
-            raise RuntimeError("Failed to open the output file after multiple retries.")
+            dset.appendBrw(output_path, end, raw_chunk)
 
-    finally:
-        # Close the BRW file if it's open
-        if data is not None:
-            try:
-                data.Close()
-            except Exception as e:
-                print(f"Error occurred while closing the BRW file: {str(e)}")
-
-    # Remove the temporary files
-    for temp_file_name in temp_file_names:
-        try:
-            os.remove(temp_file_name)
-        except FileNotFoundError:
-            print(
-                f"Warning: Temporary file '{temp_file_name}' not found. Skipping removal."
-            )
+    dset.close()
+    data.Close()
 
     return time.time() - s, output_path
 
