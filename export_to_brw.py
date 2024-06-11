@@ -662,7 +662,12 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
         nrecFrame = len(temp_file["data"])
 
     try:
-        with h5py.File(output_path, "w") as output_file:
+        # Close the BRW file if it's already open
+        if data.IsOpen():
+            data.Close()
+
+        # Open the output file in exclusive mode
+        with h5py.File(output_path, "w", libver="latest") as output_file:
             well_group = output_file.create_group("Well_A1")
             well_group.attrs["SamplingRate"] = new_sampling_rate
             well_group.attrs["StoredChIdxs"] = np.arange(len(newChs))
@@ -686,15 +691,16 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
 
                 raw_dataset[start:end] = raw_chunk.T
 
+            output_file.flush()  # Flush the file to ensure data is written
+
     except OSError as e:
         print(f"Error occurred while writing to the output file: {str(e)}")
         raise
 
-    # Remove the temporary files
-    for temp_file_name in temp_file_names:
-        os.remove(temp_file_name)
-
-    data.Close()
+    finally:
+        # Remove the temporary files
+        for temp_file_name in temp_file_names:
+            os.remove(temp_file_name)
 
     return time.time() - s, output_path
 
