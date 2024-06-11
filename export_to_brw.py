@@ -618,7 +618,6 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     data = BrwFile.Open(recfileName)
 
     s = time.time()
-    nrecFrame = 0
 
     temp_file_names = []
 
@@ -656,6 +655,7 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     print(f"Original: {fs}")
 
     chunk_size = 100000  # Adjust the chunk size as needed
+    nrecFrame = len(np.load(temp_file_names[0]))
 
     for i in range(0, nrecFrame, chunk_size):
         start = i
@@ -673,9 +673,10 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
             dset.writeSamplingFreq(new_sampling_rate)
             dset.witeFrames(nrecFrame)
             dset.writeChs(newChs)
-            dset.close()
         else:
-            dset.appendBrw(output_path, nrecFrame, raw_chunk[ind, :])
+            dset.appendBrw(output_path, end, raw_chunk[ind, :])
+
+    dset.close()
 
     for temp_file_name in temp_file_names:
         os.remove(temp_file_name)
