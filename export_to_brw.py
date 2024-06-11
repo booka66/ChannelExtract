@@ -565,7 +565,13 @@ def extract_channel(args):
     downsample_factor = math.floor(original_sampling_rate / desired_sampling_rate)
     new_sampling_rate = original_sampling_rate / downsample_factor
     downsampled_channel_data = channel_data[::downsample_factor]
-    return downsampled_channel_data
+
+    # Write the processed channel data to a temporary file
+    temp_file_name = f"channel_{i}.h5"
+    with h5py.File(temp_file_name, "w") as temp_file:
+        temp_file.create_dataset("data", data=downsampled_channel_data)
+
+    return temp_file_name
 
 
 def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
@@ -635,7 +641,7 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     ]
 
     with Pool() as pool:
-        results = list(
+        temp_file_names = list(
             tqdm(
                 pool.map(extract_channel, args),
                 total=len(args),
@@ -651,22 +657,31 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     print(f"Original: {fs}")
 
     chunk_size = 100000  # Adjust the chunk size as needed
-    nrecFrame = len(results[0])
+
+    with h5py.File(temp_file_names[0], "r") as temp_file:
+        nrecFrame = len(temp_file["data"])
 
     for i in range(0, nrecFrame, chunk_size):
         start = i
         end = min(i + chunk_size, nrecFrame)
 
-        raw_chunk = [results[j][start:end] for j in range(len(results))]
+        raw_chunk = []
+        for temp_file_name in temp_file_names:
+            with h5py.File(temp_file_name, "r") as temp_file:
+                raw_chunk.append(temp_file["data"][start:end])
         raw_chunk = np.array(raw_chunk)
 
         if i == 0:
             dset.writeRaw(raw_chunk, typeFlatten="F")
             dset.writeSamplingFreq(new_sampling_rate)
-            dset.witeFrames(nrecFrame)
+            dset.writeFrames(nrecFrame)
             dset.writeChs(newChs)
         else:
             dset.appendBrw(output_path, end, raw_chunk)
+
+    # Remove the temporary files
+    for temp_file_name in temp_file_names:
+        os.remove(temp_file_name)
 
     dset.close()
     data.Close()
