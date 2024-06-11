@@ -661,29 +661,39 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     with h5py.File(temp_file_names[0], "r") as temp_file:
         nrecFrame = len(temp_file["data"])
 
-    for i in range(0, nrecFrame, chunk_size):
-        start = i
-        end = min(i + chunk_size, nrecFrame)
+    try:
+        with h5py.File(output_path, "w") as output_file:
+            well_group = output_file.create_group("Well_A1")
+            well_group.attrs["SamplingRate"] = new_sampling_rate
+            well_group.attrs["StoredChIdxs"] = np.arange(len(newChs))
 
-        raw_chunk = []
-        for temp_file_name in temp_file_names:
-            with h5py.File(temp_file_name, "r") as temp_file:
-                raw_chunk.append(temp_file["data"][start:end])
-        raw_chunk = np.array(raw_chunk)
+            raw_dataset = well_group.create_dataset(
+                "Raw",
+                shape=(nrecFrame, len(newChs)),
+                dtype=np.float32,
+                chunks=(chunk_size, len(newChs)),
+            )
 
-        if i == 0:
-            dset.writeRaw(raw_chunk, typeFlatten="F")
-            dset.writeSamplingFreq(new_sampling_rate)
-            dset.writeFrames(nrecFrame)
-            dset.writeChs(newChs)
-        else:
-            dset.appendBrw(output_path, end, raw_chunk)
+            for i in range(0, nrecFrame, chunk_size):
+                start = i
+                end = min(i + chunk_size, nrecFrame)
+
+                raw_chunk = []
+                for temp_file_name in temp_file_names:
+                    with h5py.File(temp_file_name, "r") as temp_file:
+                        raw_chunk.append(temp_file["data"][start:end])
+                raw_chunk = np.array(raw_chunk)
+
+                raw_dataset[start:end] = raw_chunk.T
+
+    except OSError as e:
+        print(f"Error occurred while writing to the output file: {str(e)}")
+        raise
 
     # Remove the temporary files
     for temp_file_name in temp_file_names:
         os.remove(temp_file_name)
 
-    dset.close()
     data.Close()
 
     return time.time() - s, output_path
