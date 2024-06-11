@@ -662,10 +662,6 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
         nrecFrame = len(temp_file["data"])
 
     try:
-        # Close the BRW file if it's already open
-        if data.IsOpen():
-            data.Close()
-
         # Open the output file in exclusive mode
         with h5py.File(output_path, "w", libver="latest") as output_file:
             well_group = output_file.create_group("Well_A1")
@@ -698,6 +694,13 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
         raise
 
     finally:
+        # Close the BRW file if it's open
+        if data is not None:
+            try:
+                data.Close()
+            except Exception as e:
+                print(f"Error occurred while closing the BRW file: {str(e)}")
+
         # Remove the temporary files
         for temp_file_name in temp_file_names:
             os.remove(temp_file_name)
