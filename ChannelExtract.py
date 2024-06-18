@@ -331,7 +331,6 @@ class ChannelExtract(QMainWindow):
 
         startTimeLabel = QLabel("Start Time (s):")
         self.startTimeSpinBox = QDoubleSpinBox()
-        self.startTimeSpinBox.setRange(0, 50)
         settingsLayout.addWidget(startTimeLabel)
         settingsLayout.addWidget(self.startTimeSpinBox)
 

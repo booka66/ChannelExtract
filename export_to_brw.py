@@ -363,6 +363,12 @@ def get_recFile_properties(path, typ):
 
 
 def extBW4_WAV(chfileName, recfileName, chfileInfo, parameters):
+    with h5py.File(chfileName) as file:
+        start_time = file["3BRecInfo/3BRecVars/startTime"][0]
+        end_time = file["3BRecInfo/3BRecVars/endTime"][0]
+        print(f"Start time: {start_time}")
+        print(f"End time: {end_time}")
+        file.close()
     b = time.time()
     chs, ind_rec, ind_ch = np.intersect1d(
         parameters["recElectrodeList"],
@@ -576,6 +582,13 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     compressionLevel = None
     framesChunkLength = None
     coefsChunkLength = None
+    with h5py.File(chfileName) as file:
+        start_time = file["3BRecInfo/3BRecVars/startTime"][0]
+        end_time = file["3BRecInfo/3BRecVars/endTime"][0]
+        print(f"Start time: {start_time}")
+        print(f"End time: {end_time}")
+        file.close()
+
     with h5py.File(recfileName) as file:
         # collect experiment information
         samplingRate = file.attrs["SamplingRate"]
