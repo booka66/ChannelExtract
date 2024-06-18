@@ -324,13 +324,14 @@ class ChannelExtract(QMainWindow):
 
         downsampleLabel = QLabel("Downsampling (Hz):")
         self.downsampleSpinBox = QDoubleSpinBox()
-        self.downsampleSpinBox.setRange(0, 20000)
-        self.downsampleSpinBox.setValue(100)
+        self.downsampleSpinBox.setRange(0, 100000)
+        self.downsampleSpinBox.setValue(300)
         settingsLayout.addWidget(downsampleLabel)
         settingsLayout.addWidget(self.downsampleSpinBox)
 
         startTimeLabel = QLabel("Start Time (s):")
         self.startTimeSpinBox = QDoubleSpinBox()
+        self.startTimeSpinBox.setRange(0, 100000)
         settingsLayout.addWidget(startTimeLabel)
         settingsLayout.addWidget(self.startTimeSpinBox)
 

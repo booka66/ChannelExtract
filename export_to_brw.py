@@ -369,6 +369,12 @@ def extBW4_WAV(chfileName, recfileName, chfileInfo, parameters):
         print(f"Start time: {start_time}")
         print(f"End time: {end_time}")
         file.close()
+
+    start_frame = int(start_time * parameters["samplingRate"])
+    end_frame = int(end_time * parameters["samplingRate"])
+    print(f"Start frame: {start_frame}")
+    print(f"End frame: {end_frame}")
+
     b = time.time()
     chs, ind_rec, ind_ch = np.intersect1d(
         parameters["recElectrodeList"],
@@ -395,25 +401,21 @@ def extBW4_WAV(chfileName, recfileName, chfileInfo, parameters):
 
     ind = np.lexsort((newChs["Col"], newChs["Row"]))
     newChs = newChs[ind]
-    start = 0
-    idx_a = ind_rec.copy()
     consumer = object()
     data = BrwFile.Open(recfileName)
     info = data.get_MeaExperimentInfo()
-    frameRate = float(info.get_SamplingRate())
-    #    dur = int(info.get_RecordingDuration().get_TotalSeconds())
     dur = int(info.get_TimeDuration().get_TotalSeconds())
-    startFrame = np.floor(start * info.get_SamplingRate())
-    endFrame = startFrame + np.floor(dur * info.get_SamplingRate())
     numReading = int(np.floor(dur * info.get_SamplingRate() / block_size))
 
     s = time.time()
     nrecFrame = 0
     for cnk in tqdm(range(numReading), desc="Export & downsampling Progress"):
+        if start_frame + cnk * block_size >= end_frame:
+            break
         raw = np.zeros((block_size, len(ind_rec)))
 
         tmp = data.ReadRawData(
-            int(startFrame + cnk * block_size),
+            int(start_frame + cnk * block_size),
             block_size,
             data.get_SourceChannels(),
             consumer,
