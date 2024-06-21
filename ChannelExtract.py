@@ -228,6 +228,7 @@ class ChannelExtract(QMainWindow):
         self.folderName = None
         self.previously_selected_row = None
         self.theme = "dark"
+        self.last_exported_selection = None
 
         self.showMaximized()
 
@@ -343,6 +344,11 @@ class ChannelExtract(QMainWindow):
         exportButton = QPushButton("Export Channels")
         exportButton.clicked.connect(self.exportChannels)
         settingsLayout.addWidget(exportButton)
+
+        # Add "Restore selection" button
+        restoreButton = QPushButton("Restore Selection")
+        restoreButton.clicked.connect(self.restoreSelection)
+        settingsLayout.addWidget(restoreButton)
 
         downsampleExportButton = QPushButton("Downsample Export")
         downsampleExportButton.clicked.connect(self.runDownsampleExport)
@@ -599,6 +605,16 @@ class ChannelExtract(QMainWindow):
             self.inputGridWidget.ax.clear()
             self.inputGridWidget.canvas.draw()
 
+    def restoreSelection(self):
+        if self.last_exported_selection:
+            self.inputGridWidget.selected_points = self.last_exported_selection.copy()
+            self.inputGridWidget.update_selected_points_plot()
+            self.inputGridWidget.canvas.draw()
+            self.updateChannelCount()
+            self.statusBar().showMessage("Previous selection restored")
+        else:
+            self.statusBar().showMessage("No previous selection to restore")
+
     def exportChannels(self):
         selectedPoints = None
         try:
@@ -607,6 +623,7 @@ class ChannelExtract(QMainWindow):
             print("No points selected")
             return
         if selectedPoints:
+            self.last_exported_selection = selectedPoints.copy()
             chX = []
             chY = []
             for point in selectedPoints:
