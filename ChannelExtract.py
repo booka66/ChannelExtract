@@ -1159,7 +1159,7 @@ def check_for_updates():
             reply = QMessageBox.question(
                 None,
                 "Update Available",
-                "A new version is available. Do you want to update?",
+                "A new version is available :D Do you want to update?",
                 QMessageBox.Yes | QMessageBox.No,
             )
 
