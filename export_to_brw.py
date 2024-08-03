@@ -21,22 +21,22 @@ import scipy
 import scipy.signal
 
 from tqdm import tqdm
-import clr  # pip install pythonnet
-
-# For the code to run, BrianWave5 software needs to be installed, the path for the *.dll files should be changed below accordingly
-clr.AddReference(
-    os.path.join("C:\\Program Files\\3Brain\\BrainWave 5", "3Brain.BrainWave.IO.dll")
-)
-
-from System import Int32, Double, Boolean
-from _3Brain.BrainWave.IO import BrwFile
-from _3Brain.BrainWave.Common import (
-    MeaFileExperimentInfo,
-    RawDataSettings,
-    ExperimentType,
-    MeaPlate,
-)
-from _3Brain.Common import MeaPlateModel, MeaChipRoi, MeaDataType, ChCoord
+# import clr  # pip install pythonnet
+#
+# # For the code to run, BrianWave5 software needs to be installed, the path for the *.dll files should be changed below accordingly
+# clr.AddReference(
+#     os.path.join("C:\\Program Files\\3Brain\\BrainWave 5", "3Brain.BrainWave.IO.dll")
+# )
+#
+# from System import Int32, Double, Boolean
+# from _3Brain.BrainWave.IO import BrwFile
+# from _3Brain.BrainWave.Common import (
+#     MeaFileExperimentInfo,
+#     RawDataSettings,
+#     ExperimentType,
+#     MeaPlate,
+# )
+# from _3Brain.Common import MeaPlateModel, MeaChipRoi, MeaDataType, ChCoord
 
 
 def getChMap():
@@ -535,6 +535,7 @@ def reconstruct_WAV_signal(
             coefs = file["Well_A1/WaveletBasedEncodedRaw"][
                 coefs_position : coefs_position + coefsChunkLength
             ]
+            length = int(len(coefs) / 2)
 
             approx, details = coefs[:length], coefs[length:]
             approx = np.roll(approx, -5)
