@@ -71,6 +71,7 @@ class writeBrw:
         self.chs = parameters["recElectrodeList"]
         self.QLevel = np.power(2, parameters["bitDepth"])
         self.fromQLevelToUVolt = (self.maxVolt - self.minVolt) / self.QLevel
+        self.newDataset: h5py.File = None
 
         # self.signalInversion = self.brw['3BRecInfo/3BRecVars/SignalInversion']
         # self.maxVolt = self.brw['3BRecInfo/3BRecVars/MaxVolt'][0]
@@ -125,6 +126,18 @@ class writeBrw:
 
         self.newDataset = new
         # self.brw.close()
+
+    def addDigitalToAnalogAttributes(
+        self, MaxAnalogValue, MinAnalogValue, MaxDigitalValue, MinDigitalValue
+    ):
+        if self.newDataset is None:
+            print("Please create a new dataset first")
+            return
+
+        self.newDataset.attrs.__setitem__("MaxAnalogValue", MaxAnalogValue)
+        self.newDataset.attrs.__setitem__("MinAnalogValue", MinAnalogValue)
+        self.newDataset.attrs.__setitem__("MaxDigitalValue", MaxDigitalValue)
+        self.newDataset.attrs.__setitem__("MinDigitalValue", MinDigitalValue)
 
     def writeRaw(self, rawToWrite, typeFlatten="F"):
         # rawToWrite = rawToWrite / self.fromQLevelToUVolt
@@ -595,7 +608,6 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
         end_time = file["3BRecInfo/3BRecVars/endTime"][0]
         print(f"Start time: {start_time}")
         print(f"End time: {end_time}")
-        file.close()
 
     with h5py.File(recfileName) as file:
         # collect experiment information
@@ -609,7 +621,13 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
             "DataChunkLength"
         ]
         coefsChunkLength = math.ceil(framesChunkLength / pow(2, compressionLevel)) * 2
-        file.close()
+
+        conversionAttributes = [
+            file.attrs["MaxAnalogValue"],
+            file.attrs["MinAnalogValue"],
+            file.attrs["MaxDigitalValue"],
+            file.attrs["MinDigitalValue"],
+        ]
 
     chs, ind_rec, ind_ch = np.intersect1d(
         parameters["recElectrodeList"],
@@ -625,6 +643,7 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     print("Downsampling File # ", output_path)
     dset = writeBrw(recfileName, output_path, parameters)
     dset.createNewBrw()
+    dset.addDigitalToAnalogAttributes(*conversionAttributes)
 
     newChs = np.zeros(len(chs), dtype=[("Row", "<i2"), ("Col", "<i2")])
     idx = 0
@@ -636,7 +655,7 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
     newChs = newChs[ind]
     idx_a = ind_rec.copy()
     print(idx_a)
-    data = BrwFile.Open(recfileName)
+    # data = BrwFile.Open(recfileName)
 
     s = time.time()
 
@@ -690,7 +709,7 @@ def extBW5_WAV(chfileName, recfileName, chfileInfo, parameters):
             dset.appendBrw(output_path, end, raw_chunk)
 
     dset.close()
-    data.Close()
+    # data.Close()
 
     return time.time() - s, output_path
 
